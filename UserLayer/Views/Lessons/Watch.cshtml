@@ -1,0 +1,150 @@
+@model UserLayer.Models.LessonWatchViewModel
+@using SharedLayer.Enums
+@{
+    var lesson = Model.CurrentLesson;
+    var course = Model.Course;
+    var contentUrl = lesson.ContentUrl ?? string.Empty;
+    var resourceUrl = lesson.ResourcesUrl ?? string.Empty;
+    var isPdf = contentUrl.EndsWith(".pdf", StringComparison.OrdinalIgnoreCase) || resourceUrl.EndsWith(".pdf", StringComparison.OrdinalIgnoreCase);
+    var pdfUrl = contentUrl.EndsWith(".pdf", StringComparison.OrdinalIgnoreCase) ? contentUrl : resourceUrl;
+    var videoUrl = lesson.Type == LessonType.Video ? contentUrl : string.Empty;
+    var quiz = lesson.Quiz;
+}
+
+<div class="hero-dark" style="padding:2rem 0;">
+    <div class="container">
+        <nav style="font-size:0.82rem;margin-bottom:1rem;">
+            <a href="/" style="color:#9ca3af;text-decoration:none;">Home</a><span style="color:#6b7280;margin:0 0.4rem;">/</span><a href="/MyCourses" style="color:#9ca3af;text-decoration:none;">My Courses</a><span style="color:#6b7280;margin:0 0.4rem;">/</span><a href="/Courses/Details/@course.Id" style="color:#9ca3af;text-decoration:none;">@course.Title</a>
+        </nav>
+        <span class="section-badge">Learning workspace</span>
+        <h1 class="section-title text-white mt-2 mb-2" style="font-size:clamp(1.45rem,3vw,2.1rem);">@lesson.Title</h1>
+        <div class="d-flex gap-3 flex-wrap" style="color:#9ca3af;font-size:0.9rem;">
+            <span><i class="bi bi-book me-1"></i>@course.Title</span>
+            <span><i class="bi bi-clock me-1"></i>@lesson.DurationMinutes min</span>
+            <span><i class="bi bi-graph-up me-1"></i>@Model.Enrollment.CompletionPercentage.ToString("0")% complete</span>
+        </div>
+    </div>
+</div>
+
+<div class="container py-4">
+    <div class="row g-4">
+        <main class="col-lg-8">
+            <section class="dashboard-card mb-4" style="padding:0;overflow:hidden;">
+                @if (!string.IsNullOrEmpty(videoUrl))
+                {
+                    @if (videoUrl.Contains("youtube.com", StringComparison.OrdinalIgnoreCase) || videoUrl.Contains("youtu.be", StringComparison.OrdinalIgnoreCase) || videoUrl.Contains("vimeo.com", StringComparison.OrdinalIgnoreCase))
+                    {
+                        <iframe src="@videoUrl" title="@lesson.Title" style="width:100%;aspect-ratio:16/9;border:0;display:block;" allowfullscreen></iframe>
+                    }
+                    else
+                    {
+                        <video controls style="width:100%;aspect-ratio:16/9;background:#111827;display:block;">
+                            <source src="@videoUrl" />
+                            Your browser does not support the video element.
+                        </video>
+                    }
+                }
+                else if (isPdf && !string.IsNullOrEmpty(pdfUrl))
+                {
+                    <iframe src="@pdfUrl" title="@lesson.Title" style="width:100%;height:72vh;border:0;display:block;"></iframe>
+                }
+                else if (!string.IsNullOrWhiteSpace(lesson.ArticleContent))
+                {
+                    <article style="padding:2rem;color:#374151;line-height:1.85;">@Html.Raw(lesson.ArticleContent)</article>
+                }
+                else
+                {
+                    <div class="text-center py-5 px-4">
+                        <i class="bi bi-file-earmark-text" style="font-size:4rem;color:#d8b4fe;"></i>
+                        <h2 style="font-size:1.25rem;font-weight:800;margin-top:1rem;">Lesson content</h2>
+                        @if (!string.IsNullOrEmpty(lesson.Description))
+                        {
+                            <p class="text-muted mb-0">@lesson.Description</p>
+                        }
+                        @if (!string.IsNullOrEmpty(contentUrl))
+                        {
+                            <a href="@contentUrl" target="_blank" rel="noopener" class="btn-primary-custom mt-3">Open lesson resource</a>
+                        }
+                    </div>
+                }
+            </section>
+
+                        @if (quiz != null)
+            {
+                <section class="dashboard-card mb-4">
+                    <div class="d-flex justify-content-between align-items-center flex-wrap gap-3">
+                        <div>
+                            <span class="section-badge">Knowledge check</span>
+                            <h2 style="font-weight:800;font-size:1.2rem;margin:0.5rem 0 0;">@quiz.Title</h2>
+                            <p class="text-muted mb-0">Passing score: @quiz.PassingScore%</p>
+                        </div>
+                        <a href="/Quizzes/Take/@quiz.Id" class="btn-primary-custom">Take Quiz</a>
+                    </div>
+                </section>
+            }
+            <section class="dashboard-card mb-4">
+                <div class="d-flex justify-content-between align-items-start flex-wrap gap-3">
+                    <div>
+                        <h2 style="font-weight:800;font-size:1.2rem;margin-bottom:0.5rem;">@lesson.Title</h2>
+                        @if (!string.IsNullOrEmpty(lesson.Description))
+                        {
+                            <p class="text-muted mb-0" style="line-height:1.7;">@lesson.Description</p>
+                        }
+                    </div>
+                    @if (Model.IsCurrentLessonCompleted)
+                    {
+                        <span class="badge bg-success" style="font-size:0.85rem;padding:0.55rem 0.9rem;">Completed</span>
+                    }
+                    else
+                    {
+                        <form method="post" action="/Lessons/MarkComplete">
+                            @Html.AntiForgeryToken()
+                            <input type="hidden" name="lessonId" value="@lesson.Id" />
+                            <input type="hidden" name="watchedSeconds" value="@(lesson.DurationMinutes * 60)" />
+                            <button type="submit" class="btn-primary-custom" style="border:0;">Mark Complete</button>
+                        </form>
+                    }
+                </div>
+            </section>
+
+            <div class="d-flex justify-content-between gap-3 flex-wrap mb-4">
+                @if (Model.PreviousLesson != null)
+                {
+                    <a href="/Lessons/Watch/@Model.PreviousLesson.Id" class="btn-outline-custom"><i class="bi bi-arrow-left"></i> Previous</a>
+                }
+                else
+                {
+                    <span></span>
+                }
+                @if (Model.NextLesson != null)
+                {
+                    <a href="/Lessons/Watch/@Model.NextLesson.Id" class="btn-primary-custom">Next Lesson <i class="bi bi-arrow-right"></i></a>
+                }
+                else
+                {
+                    <a href="/Courses/Details/@course.Id" class="btn-primary-custom">Back to Course</a>
+                }
+            </div>
+        </main>
+
+        <aside class="col-lg-4">
+            <section class="dashboard-card" style="position:sticky;top:88px;">
+                <div class="d-flex justify-content-between mb-2" style="font-size:0.85rem;"><span class="text-muted">Course progress</span><strong>@Model.Enrollment.CompletionPercentage.ToString("0")%</strong></div>
+                <div class="progress-custom mb-4"><div class="progress-bar" style="width:@Model.Enrollment.CompletionPercentage%"></div></div>
+                <h2 style="font-weight:800;font-size:1.05rem;margin-bottom:1rem;">Course lessons</h2>
+                <div class="d-grid gap-2">
+                    @foreach (var item in Model.Lessons)
+                    {
+                        var completed = Model.CompletedLessonIds.Contains(item.Id);
+                        var active = item.Id == lesson.Id;
+                        <a href="/Lessons/Watch/@item.Id" class="text-decoration-none" style="display:flex;gap:0.75rem;align-items:flex-start;padding:0.75rem;border-radius:10px;background:@(active ? "#ede9fe" : "#f9fafb");border:1px solid @(active ? "#c4b5fd" : "#e5e7eb");color:#111827;">
+                            <i class="bi @(completed ? "bi-check-circle-fill" : "bi-play-circle")" style="color:@(completed ? "#16a34a" : "#8b5cf6");margin-top:0.1rem;"></i>
+                            <span style="font-size:0.86rem;font-weight:700;line-height:1.35;">@item.Title</span>
+                        </a>
+                    }
+                </div>
+            </section>
+        </aside>
+    </div>
+</div>
+

@@ -1,0 +1,196 @@
+﻿@model DataLayer.Entities.StudyGuide
+@using System.Net
+@using System.Text.RegularExpressions
+@{
+    bool isBookmarked = ViewBag.IsBookmarked as bool? ?? false;
+    var previousGuide = ViewBag.PreviousGuide as DataLayer.Entities.StudyGuide;
+    var nextGuide = ViewBag.NextGuide as DataLayer.Entities.StudyGuide;
+    var relatedPracticeTests = ViewBag.RelatedPracticeTests as List<DataLayer.Entities.PracticeTest> ?? new();
+    var relatedFlashcardSets = ViewBag.RelatedFlashcardSets as List<DataLayer.Entities.FlashcardSet> ?? new();
+
+    string Plain(string? value) => WebUtility.HtmlDecode(Regex.Replace(value ?? string.Empty, "<.*?>", " ")).Trim();
+    int readingMinutes = Math.Max(2, (int)Math.Ceiling(Regex.Matches(Plain($"{Model.Summary} {Model.Theory} {Model.Examples} {Model.KeyConcepts} {Model.Tips}"), @"\b\w+\b").Count / 180m));
+    var takeaways = Regex.Split(Plain(Model.KeyConcepts), @"(?<=[.!?])\s+|\n+").Where(x => !string.IsNullOrWhiteSpace(x)).Take(4).ToList();
+    if (!takeaways.Any() && !string.IsNullOrWhiteSpace(Model.Summary)) takeaways.Add(Model.Summary);
+}
+
+<section class="premium-hero guide-reader-hero py-5">
+    <div class="container">
+        <div class="row align-items-end gy-4">
+            <div class="col-lg-8">
+                <a href="/StudyGuides" class="reader-back"><i class="bi bi-arrow-left"></i> Study Guides</a>
+                <span class="section-badge mt-3"><i class="bi bi-journal-text"></i> @Model.Category?.Name</span>
+                <h1 class="section-title text-white mt-3 mb-2">@Model.Title</h1>
+                <p class="reader-hero-copy">@Model.Summary</p>
+            </div>
+            <div class="col-lg-4">
+                <div class="reader-status-panel">
+                    <div><strong>@readingMinutes</strong><span>Min Read</span></div>
+                    <div><strong>4</strong><span>Sections</span></div>
+                    <div><strong>@(relatedPracticeTests.Count + relatedFlashcardSets.Count)</strong><span>Related</span></div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<div class="container py-5">
+    <div class="row g-4">
+        <aside class="col-lg-3">
+            <div class="reader-sidebar sticky-top">
+                <a href="/StudyGuides" class="reader-sidebar-link"><i class="bi bi-arrow-left"></i> All guides</a>
+                <hr />
+                <div class="toc-title">Table of contents</div>
+                <nav class="toc-links" aria-label="Study guide table of contents">
+                    <a href="#theory"><i class="bi bi-lightbulb"></i> Theory</a>
+                    <a href="#examples"><i class="bi bi-pencil-square"></i> Examples</a>
+                    <a href="#key-concepts"><i class="bi bi-check2-square"></i> Key Takeaways</a>
+                    <a href="#tips"><i class="bi bi-compass"></i> Tips</a>
+                    <a href="#related"><i class="bi bi-link-45deg"></i> Related Practice</a>
+                </nav>
+                <form method="post" action="/StudyGuides/Bookmark/@Model.Id" class="mt-3">
+                    @Html.AntiForgeryToken()
+                    <button class="reader-bookmark @(isBookmarked ? "active" : "")" type="submit">
+                        <i class="bi @(isBookmarked ? "bi-bookmark-fill" : "bi-bookmark")"></i>
+                        @(isBookmarked ? "Bookmarked" : "Bookmark guide")
+                    </button>
+                </form>
+            </div>
+        </aside>
+
+        <article class="col-lg-9">
+            <div class="reader-article">
+                <section id="theory" class="reader-section">
+                    <div class="reader-section-kicker">Concept foundation</div>
+                    <h2>Theory</h2>
+                    @Html.Raw(Model.Theory)
+                </section>
+
+                <section id="examples" class="reader-section">
+                    <div class="reader-section-kicker">How it appears on test day</div>
+                    <h2>Examples</h2>
+                    @Html.Raw(Model.Examples)
+                </section>
+
+                <section id="key-concepts" class="reader-section key-takeaways">
+                    <div class="reader-section-kicker">Remember this</div>
+                    <h2>Key Takeaways</h2>
+                    @if (takeaways.Any())
+                    {
+                        <div class="takeaway-grid">
+                            @foreach (var takeaway in takeaways)
+                            {
+                                <div class="takeaway-item"><i class="bi bi-check-circle-fill"></i><span>@takeaway</span></div>
+                            }
+                        </div>
+                    }
+                    <div class="reader-rich-block mt-4">@Html.Raw(Model.KeyConcepts)</div>
+                </section>
+
+                <section id="tips" class="reader-section">
+                    <div class="reader-section-kicker">Score strategy</div>
+                    <h2>Tips</h2>
+                    @Html.Raw(Model.Tips)
+                </section>
+            </div>
+
+            <div class="reader-prev-next my-4">
+                @if (previousGuide != null)
+                {
+                    <a href="/StudyGuides/Read/@previousGuide.Id" class="reader-nav-card previous"><span><i class="bi bi-arrow-left"></i> Previous</span><strong>@previousGuide.Title</strong></a>
+                }
+                else
+                {
+                    <div class="reader-nav-card disabled"><span>Previous</span><strong>Start of category</strong></div>
+                }
+                @if (nextGuide != null)
+                {
+                    <a href="/StudyGuides/Read/@nextGuide.Id" class="reader-nav-card next"><span>Next <i class="bi bi-arrow-right"></i></span><strong>@nextGuide.Title</strong></a>
+                }
+                else
+                {
+                    <div class="reader-nav-card disabled"><span>Next</span><strong>End of category</strong></div>
+                }
+            </div>
+
+            <section id="related" class="related-resource-panel">
+                <div class="d-flex justify-content-between align-items-end flex-wrap gap-3 mb-3">
+                    <div>
+                        <span class="section-badge"><i class="bi bi-link-45deg"></i> Keep practicing</span>
+                        <h2>Related resources</h2>
+                    </div>
+                </div>
+                <div class="row g-3">
+                    @foreach (var test in relatedPracticeTests)
+                    {
+                        <div class="col-md-6">
+                            <a href="/PracticeTests/Take/@test.Id" class="related-card">
+                                <i class="bi bi-clipboard-check"></i>
+                                <div><strong>@test.Title</strong><span>@(test.Questions?.Count ?? 0) questions · @(test.IsTimed ? $"{test.TimeLimitMinutes} min" : "Untimed")</span></div>
+                            </a>
+                        </div>
+                    }
+                    @foreach (var set in relatedFlashcardSets)
+                    {
+                        <div class="col-md-6">
+                            <a href="/Flashcards/Study/@set.Id" class="related-card">
+                                <i class="bi bi-card-text"></i>
+                                <div><strong>@set.Title</strong><span>@(set.Flashcards?.Count ?? 0) cards</span></div>
+                            </a>
+                        </div>
+                    }
+                    @if (!relatedPracticeTests.Any() && !relatedFlashcardSets.Any())
+                    {
+                        <div class="col-12"><div class="empty-related">Related practice resources will appear here as this category grows.</div></div>
+                    }
+                </div>
+            </section>
+        </article>
+    </div>
+</div>
+
+@section Styles {
+    <style>
+        .reader-back { display:inline-flex; align-items:center; gap:.45rem; color:#cbd5e1; text-decoration:none; font-weight:900; }
+        .reader-hero-copy { color:#cbd5e1; max-width:760px; line-height:1.8; margin:0; }
+        .reader-status-panel { display:grid; grid-template-columns:repeat(3,1fr); gap:.75rem; border:1px solid rgba(255,255,255,.18); border-radius:16px; background:rgba(255,255,255,.1); padding:1rem; }
+        .reader-status-panel div { text-align:center; border-radius:12px; background:rgba(255,255,255,.1); padding:.85rem; }
+        .reader-status-panel strong { display:block; color:#fff; font-family:'Outfit',sans-serif; font-size:1.55rem; line-height:1; }
+        .reader-status-panel span { display:block; color:#cbd5e1; font-size:.75rem; font-weight:900; margin-top:.35rem; text-transform:uppercase; }
+        .reader-sidebar { top:96px; border:1px solid var(--line); border-radius:14px; background:#fff; padding:1rem; box-shadow:0 1px 2px rgba(16,24,40,.03); }
+        .reader-sidebar-link { color:var(--brand); text-decoration:none; font-weight:900; }
+        .toc-title { color:var(--muted); font-size:.74rem; font-weight:900; letter-spacing:.06em; text-transform:uppercase; margin-bottom:.5rem; }
+        .toc-links { display:grid; gap:.35rem; }
+        .toc-links a { display:flex; align-items:center; gap:.55rem; border-radius:10px; color:#344054; text-decoration:none; font-weight:800; padding:.62rem .7rem; }
+        .toc-links a:hover { background:#eef3ff; color:var(--brand); }
+        .reader-bookmark { width:100%; border:1px solid #facc15; border-radius:12px; background:#fff7ed; color:#92400e; font-weight:900; padding:.75rem; }
+        .reader-bookmark.active { background:#fef3c7; color:#854d0e; }
+        .reader-article { border:1px solid var(--line); border-radius:16px; background:#fff; padding:clamp(1.1rem,3vw,2rem); box-shadow:0 1px 2px rgba(16,24,40,.03); }
+        .reader-section { scroll-margin-top:110px; }
+        .reader-section + .reader-section { margin-top:2.4rem; padding-top:2.4rem; border-top:1px solid var(--line); }
+        .reader-section-kicker { color:var(--brand); font-size:.75rem; font-weight:900; letter-spacing:.08em; text-transform:uppercase; margin-bottom:.35rem; }
+        .reader-section h2, .related-resource-panel h2 { font-size:1.55rem; font-weight:900; margin:0 0 1rem; }
+        .reader-section { color:#344054; font-size:1.02rem; line-height:1.85; }
+        .reader-section ul { padding-left:1.25rem; }
+        .reader-section li { margin-bottom:.45rem; }
+        .reader-section .example-box, .reader-rich-block .example-box { background:#f8fafc; border:1px solid var(--line); border-radius:14px; padding:1rem; margin:.75rem 0; }
+        .takeaway-grid { display:grid; gap:.75rem; }
+        .takeaway-item { display:flex; gap:.75rem; border:1px solid #bbf7d0; border-radius:12px; background:#f0fdf4; padding:.85rem; color:#14532d; font-weight:800; line-height:1.55; }
+        .takeaway-item i { color:#16a34a; margin-top:.2rem; }
+        .reader-prev-next { display:grid; grid-template-columns:1fr 1fr; gap:1rem; }
+        .reader-nav-card { display:grid; gap:.35rem; border:1px solid var(--line); border-radius:14px; background:#fff; color:var(--ink); text-decoration:none; padding:1rem; }
+        .reader-nav-card span { color:var(--muted); font-size:.78rem; font-weight:900; text-transform:uppercase; }
+        .reader-nav-card strong { font-size:.95rem; line-height:1.35; }
+        .reader-nav-card.next { text-align:right; }
+        .reader-nav-card.disabled { color:#98a2b3; background:#f8fafc; }
+        .related-resource-panel { border:1px solid var(--line); border-radius:16px; background:#fff; padding:1.25rem; }
+        .related-card { display:flex; gap:.8rem; height:100%; border:1px solid var(--line); border-radius:14px; background:#f8fafc; color:var(--ink); padding:1rem; text-decoration:none; }
+        .related-card:hover { border-color:#c7d7fe; background:#eef3ff; }
+        .related-card > i { color:var(--brand); font-size:1.35rem; }
+        .related-card strong, .related-card span { display:block; }
+        .related-card span { color:var(--muted); font-size:.85rem; margin-top:.25rem; }
+        .empty-related { border:1px dashed var(--line); border-radius:14px; color:var(--muted); padding:1rem; text-align:center; }
+        @@media (max-width:991.98px) { .reader-sidebar { position:static!important; } }
+        @@media (max-width:575.98px) { .reader-status-panel, .reader-prev-next { grid-template-columns:1fr; } .reader-nav-card.next { text-align:left; } }
+    </style>
+}

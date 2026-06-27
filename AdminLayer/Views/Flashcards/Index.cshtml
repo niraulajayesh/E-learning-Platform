@@ -1,0 +1,11 @@
+@model IEnumerable<DataLayer.Entities.FlashcardSet>
+@{
+    ViewData["Title"] = "Flashcards";
+    var categories = ViewBag.Categories as List<DataLayer.Entities.Category> ?? new();
+    int? categoryId = ViewBag.CategoryId as int?;
+    string? search = ViewBag.Search as string;
+}
+<div class="d-flex justify-content-between align-items-center mb-4"><div><h2>Flashcard Sets</h2><p class="text-muted mb-0">Manage ASVAB study flashcards by category.</p></div><a href="/Flashcards/Create" class="btn btn-primary"><i class="bi bi-plus-lg me-1"></i> Add Set</a></div>
+<form method="get" class="row g-2 mb-3"><div class="col-md-4"><input name="search" value="@search" class="form-control" placeholder="Search sets" /></div><div class="col-md-3"><select name="categoryId" class="form-select"><option value="">All categories</option>@foreach(var c in categories){<option value="@c.Id" selected="@(categoryId == c.Id)">@c.Name</option>}</select></div><div class="col-auto"><button type="submit" class="btn btn-outline-primary"><i class="bi bi-search"></i></button></div><div class="col-auto"><a href="/Flashcards" class="btn btn-outline-secondary">Reset</a></div></form>
+<div class="card shadow-sm border-0"><div class="card-body p-0"><table class="table table-hover mb-0"><thead class="table-light"><tr><th>Set</th><th>Category</th><th>Cards</th><th>Status</th><th class="text-end">Actions</th></tr></thead><tbody>@foreach(var set in Model){<tr><td><div class="fw-semibold">@set.Title</div><div class="small text-muted">@set.Description</div></td><td>@set.Category?.Name</td><td>@set.Flashcards.Count</td><td><span class="badge @(set.IsPublished ? "bg-success" : "bg-secondary")">@(set.IsPublished ? "Published" : "Draft")</span></td><td class="text-end"><a href="/Flashcards/Edit/@set.Id" class="btn btn-sm btn-outline-primary"><i class="bi bi-pencil"></i></a><form method="post" action="/Flashcards/Delete/@set.Id" class="d-inline" data-confirm="Delete this flashcard set?">@Html.AntiForgeryToken()<button type="submit" class="btn btn-sm btn-outline-danger"><i class="bi bi-trash"></i></button></form></td></tr>}</tbody></table></div></div>
+

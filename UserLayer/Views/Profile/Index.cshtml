@@ -1,0 +1,57 @@
+@model DataLayer.Entities.User
+
+<div class="hero-dark" style="padding:3rem 0;">
+    <div class="container">
+        <span class="section-badge">Account settings</span>
+        <h1 class="section-title text-white mb-1">Profile</h1>
+        <p style="color:#9ca3af;margin:0;">Manage your personal information and public instructor details.</p>
+    </div>
+</div>
+
+<div class="container py-5">
+    <div class="row g-4 justify-content-center">
+        <aside class="col-lg-4">
+            <section class="dashboard-card text-center">
+                @if (!string.IsNullOrEmpty(Model.ProfilePictureUrl))
+                {
+                    <img src="@Model.ProfilePictureUrl" alt="Profile" class="instructor-avatar mb-3" style="width:96px;height:96px;border:3px solid #ede9fe;" />
+                }
+                else
+                {
+                    <div style="width:96px;height:96px;border-radius:50%;background:linear-gradient(135deg,#6c2bd9,#8b5cf6);display:flex;align-items:center;justify-content:center;color:#fff;font-size:2.2rem;font-weight:800;margin:0 auto 1rem;">@Model.FirstName.Substring(0,1)</div>
+                }
+                <h2 style="font-size:1.2rem;font-weight:800;margin-bottom:0.25rem;">@Model.FullName</h2>
+                <p style="color:#6b7280;font-size:0.86rem;">@Model.Email</p>
+                <span class="badge" style="background:linear-gradient(135deg,#6c2bd9,#8b5cf6);color:#fff;padding:0.45rem 1rem;">@Model.Role</span>
+                <div style="border-top:1px solid #f3f4f6;margin-top:1.5rem;padding-top:1.5rem;" class="d-grid gap-2">
+                    <a href="/MyCourses" class="btn-outline-custom justify-content-center">My Courses</a>
+                    <a href="/Certificates" class="btn-outline-custom justify-content-center">Certificates</a>
+                    <a href="/Wishlist" class="btn-outline-custom justify-content-center">Wishlist</a>
+                </div>
+            </section>
+        </aside>
+        <main class="col-lg-8">
+            <section class="dashboard-card">
+                <h2 style="font-weight:800;font-size:1.2rem;margin-bottom:1.5rem;">Personal information</h2>
+                <form method="post" action="/Profile/Update">
+                    @Html.AntiForgeryToken()
+                    <input type="hidden" name="Id" value="@Model.Id" />
+                    <input type="hidden" name="Email" value="@Model.Email" />
+                    <input type="hidden" name="Role" value="@Model.Role" />
+                    <div class="row g-3 mb-3">
+                        <div class="col-md-6"><label class="form-label fw-semibold" style="font-size:0.88rem;">First Name</label><input type="text" name="FirstName" value="@Model.FirstName" class="form-control" required style="border-radius:10px;" /></div>
+                        <div class="col-md-6"><label class="form-label fw-semibold" style="font-size:0.88rem;">Last Name</label><input type="text" name="LastName" value="@Model.LastName" class="form-control" required style="border-radius:10px;" /></div>
+                    </div>
+                    <div class="mb-3"><label class="form-label fw-semibold" style="font-size:0.88rem;">Email Address</label><input type="email" value="@Model.Email" class="form-control" disabled style="border-radius:10px;background:#f9fafb;" /><div class="form-text">Email cannot be changed here.</div></div>
+                    <div class="mb-3"><label class="form-label fw-semibold" style="font-size:0.88rem;">Professional Headline</label><input type="text" name="Headline" value="@Model.Headline" class="form-control" placeholder="e.g. Full-stack developer and educator" style="border-radius:10px;" /></div>
+                    <div class="mb-3"><label class="form-label fw-semibold" style="font-size:0.88rem;">Bio</label><textarea name="Bio" class="form-control" rows="5" style="border-radius:10px;" placeholder="Tell learners about your background, goals, and interests.">@Model.Bio</textarea></div>
+                    <div class="row g-3 mb-4">
+                        <div class="col-md-6"><label class="form-label fw-semibold" style="font-size:0.88rem;">Website</label><input type="url" name="WebsiteUrl" value="@Model.WebsiteUrl" class="form-control" placeholder="https://yourwebsite.com" style="border-radius:10px;" /></div>
+                        <div class="col-md-6"><label class="form-label fw-semibold" style="font-size:0.88rem;">LinkedIn Profile</label><input type="url" name="LinkedInUrl" value="@Model.LinkedInUrl" class="form-control" placeholder="https://linkedin.com/in/you" style="border-radius:10px;" /></div>
+                    </div>
+                    <button type="submit" class="btn-primary-custom" style="border:none;"><i class="bi bi-check-lg"></i> Save Changes</button>
+                </form>
+            </section>
+        </main>
+    </div>
+</div>

@@ -1,0 +1,34 @@
+@model AdminLayer.Models.MockExamBuilderViewModel
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <div><h1 class="h3 mb-1">Mock Exam Builder</h1><p class="text-muted mb-0">Create a full ASVAB-style exam by choosing question counts per category.</p></div>
+    <a class="btn btn-outline-secondary" asp-action="Index"><i class="bi bi-arrow-left"></i> Back</a>
+</div>
+@if (Model.Errors.Any()) { <div class="alert alert-danger"><ul class="mb-0">@foreach (var error in Model.Errors) { <li>@error</li> }</ul></div> }
+<div class="card border-0 shadow-sm"><div class="card-body">
+<form asp-action="MockExamBuilder" method="post">@Html.AntiForgeryToken()
+    <div class="row g-3 mb-3">
+        <div class="col-md-6"><label class="form-label" asp-for="Title">Title</label><input class="form-control" asp-for="Title" /></div>
+        <div class="col-md-3"><label class="form-label" asp-for="TimeLimitMinutes">Time limit minutes</label><input class="form-control" asp-for="TimeLimitMinutes" type="number" min="0" /></div>
+        <div class="col-md-3"><label class="form-label" asp-for="PassingScorePercent">Passing score percent</label><input class="form-control" asp-for="PassingScorePercent" type="number" min="1" max="100" /></div>
+        <div class="col-12"><label class="form-label" asp-for="Description">Description</label><textarea class="form-control" asp-for="Description" rows="2"></textarea></div>
+    </div>
+    <div class="table-responsive mb-3">
+        <table class="table align-middle">
+            <thead class="table-light"><tr><th>ASVAB Category</th><th style="width:220px">Question Count</th></tr></thead>
+            <tbody>
+                @foreach (var category in Model.Categories)
+                {
+                    var count = Model.CategoryQuestionCounts.TryGetValue(category.Id, out var value) ? value : 9;
+                    <tr><td><strong>@category.Name</strong><div class="small text-muted">@category.Description</div></td><td><input class="form-control" type="number" min="0" name="CategoryQuestionCounts[@category.Id]" value="@count" /></td></tr>
+                }
+            </tbody>
+        </table>
+    </div>
+    <div class="d-flex gap-4 mb-4">
+        <div class="form-check"><input class="form-check-input" asp-for="ShuffleQuestions" /><label class="form-check-label" asp-for="ShuffleQuestions">Shuffle questions</label></div>
+        <div class="form-check"><input class="form-check-input" asp-for="ShuffleAnswers" /><label class="form-check-label" asp-for="ShuffleAnswers">Shuffle answers</label></div>
+    </div>
+    <button type="submit" class="btn btn-primary"><i class="bi bi-ui-checks-grid"></i> Generate Mock Exam</button>
+</form>
+</div></div>
+

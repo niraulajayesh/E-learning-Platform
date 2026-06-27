@@ -1,0 +1,10 @@
+User-agent: *
+Allow: /
+Disallow: /Auth/
+Disallow: /Profile/
+Disallow: /Dashboard/
+Disallow: /MyCourses/
+Disallow: /Wishlist/
+Disallow: /Certificates/
+
+Sitemap: /sitemap.xml

@@ -1,0 +1,104 @@
+@model UserLayer.Controllers.StudyPlannerController.StudyPlannerViewModel
+@{
+    var examDate = Model.Planner.ExamDate.ToString("yyyy-MM-dd");
+}
+
+<section class="premium-hero" style="padding:3rem 0;">
+    <div class="container">
+        <div class="d-flex align-items-end justify-content-between flex-wrap gap-4">
+            <div>
+                <span class="section-badge"><i class="bi bi-calendar-check"></i> Study planner</span>
+                <h1 class="section-title text-white mt-3 mb-2">Daily ASVAB Study Plan</h1>
+                <p style="color:#cbd5e1;margin:0;max-width:650px;line-height:1.75;">Set your exam date and daily study hours to generate a focused plan across lessons, practice tests, flashcards, and guides.</p>
+            </div>
+            <a href="/Dashboard" class="btn-outline-custom" style="width:auto;"><i class="bi bi-grid-1x2"></i> Dashboard</a>
+        </div>
+    </div>
+</section>
+
+<div class="container py-5">
+    <div class="row g-4 mb-4">
+        <div class="col-lg-4">
+            <section class="dashboard-card h-100">
+                <h2 style="font-size:1.2rem;font-weight:900;margin-bottom:1rem;">Planner Settings</h2>
+                <form method="post" action="/StudyPlanner/Save" class="d-grid gap-3">
+                    @Html.AntiForgeryToken()
+                    <div>
+                        <label class="form-label fw-bold">Exam Date</label>
+                        <input type="date" name="examDate" value="@examDate" class="form-control" required />
+                    </div>
+                    <div>
+                        <label class="form-label fw-bold">Daily Study Hours</label>
+                        <input type="number" name="dailyStudyHours" value="@Model.Planner.DailyStudyHours" class="form-control" min="0.5" max="8" step="0.5" required />
+                    </div>
+                    <button type="submit" class="btn-primary-custom"><i class="bi bi-magic"></i> Generate Plan</button>
+                </form>
+            </section>
+        </div>
+        <div class="col-lg-8">
+            <div class="row row-cols-1 row-cols-md-3 g-3 h-100">
+                <div class="col"><div class="metric-card h-100" style="background:linear-gradient(135deg,#3157d5,#17a2a4);"><i class="bi bi-calendar-event fs-3"></i><div style="font-family:'Outfit',sans-serif;font-weight:900;font-size:2rem;margin:.4rem 0;">@Model.DaysUntilExam</div><div class="fw-bold">Days Until Exam</div></div></div>
+                <div class="col"><div class="metric-card h-100" style="background:linear-gradient(135deg,#067647,#16a34a);"><i class="bi bi-clock-history fs-3"></i><div style="font-family:'Outfit',sans-serif;font-weight:900;font-size:2rem;margin:.4rem 0;">@Model.PlannedHours</div><div class="fw-bold">Planned Study Hours</div></div></div>
+                <div class="col"><div class="metric-card h-100" style="background:linear-gradient(135deg,#b54708,#f59e0b);"><i class="bi bi-graph-up-arrow fs-3"></i><div style="font-family:'Outfit',sans-serif;font-weight:900;font-size:2rem;margin:.4rem 0;">@Model.CompletionEstimate%</div><div class="fw-bold">Plan Coverage</div></div></div>
+            </div>
+        </div>
+    </div>
+
+    <section class="dashboard-card mb-4">
+        <div class="d-flex justify-content-between align-items-start flex-wrap gap-3 mb-3">
+            <div>
+                <h2 style="font-size:1.2rem;font-weight:900;margin:0;">Auto-Adjusted Focus</h2>
+                <p class="text-muted mb-0 mt-1">Weak areas are scheduled first when performance data is available.</p>
+            </div>
+            <a href="/PracticeTests" class="btn-outline-custom" style="width:auto;"><i class="bi bi-clipboard-check"></i> Add Scores</a>
+        </div>
+        @if (Model.FocusAreas.Any())
+        {
+            <div class="d-flex flex-wrap gap-2">
+                @foreach (var area in Model.FocusAreas)
+                {
+                    <span class="course-count-chip"><strong>@area.Code</strong> @area.Category <span class="text-muted">@area.AverageScore.ToString("0.#")%</span></span>
+                }
+            </div>
+        }
+        else
+        {
+            <p class="text-muted mb-0">No score history yet. The plan rotates evenly through all ASVAB categories until you complete quizzes, practice tests, or a mock exam.</p>
+        }
+    </section>
+
+    <section class="dashboard-card">
+        <div class="d-flex justify-content-between align-items-center flex-wrap gap-2 mb-4">
+            <h2 style="font-size:1.25rem;font-weight:900;margin:0;">Daily Study Plan</h2>
+            <span class="badge bg-light text-dark border">Next @Model.Days.Count days</span>
+        </div>
+        <div class="d-grid gap-3">
+            @foreach (var day in Model.Days)
+            {
+                <div style="border:1px solid var(--line);border-radius:14px;background:#fff;padding:1rem;">
+                    <div class="d-flex justify-content-between align-items-center flex-wrap gap-2 mb-3">
+                        <div>
+                            <div class="fw-black" style="font-weight:900;">@day.Date.ToString("dddd, MMM dd")</div>
+                            <div class="text-muted small">@Model.Planner.DailyStudyHours hours planned</div>
+                        </div>
+                        <span class="badge" style="background:#eef3ff;color:var(--brand);">@day.Tasks.Count tasks</span>
+                    </div>
+                    <div class="row row-cols-1 row-cols-md-2 row-cols-xl-3 g-3">
+                        @foreach (var task in day.Tasks)
+                        {
+                            var icon = task.Type == "Lesson" ? "bi-play-circle" : task.Type == "Practice Test" ? "bi-clipboard-check" : task.Type == "Flashcards" ? "bi-layers" : "bi-journal-text";
+                            <div class="col">
+                                <a href="@task.Url" class="text-decoration-none" style="display:block;height:100%;border:1px solid var(--line);border-radius:12px;padding:.9rem;color:var(--ink);background:#fbfcff;">
+                                    <div class="d-flex align-items-center gap-2 mb-2"><i class="bi @icon" style="color:var(--brand);"></i><span class="badge bg-light text-dark border">@task.Type</span></div>
+                                    <div style="font-weight:900;line-height:1.3;">@task.Title</div>
+                                    <div class="text-muted small mt-1">@task.Category</div>
+                                    <div class="small mt-2" style="color:var(--brand);font-weight:800;">@task.Detail</div>
+                                </a>
+                            </div>
+                        }
+                    </div>
+                </div>
+            }
+        </div>
+    </section>
+</div>

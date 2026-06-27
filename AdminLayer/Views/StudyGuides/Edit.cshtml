@@ -1,0 +1,6 @@
+@model DataLayer.Entities.StudyGuide
+@{
+    ViewData["Title"] = "Edit Study Guide";
+}
+<div class="d-flex justify-content-between align-items-center mb-4"><h2>Edit Study Guide</h2><a href="/StudyGuides" class="btn btn-outline-secondary">Back</a></div>
+@await Html.PartialAsync("_Form", Model)

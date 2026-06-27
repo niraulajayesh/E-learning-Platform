@@ -1,0 +1,10 @@
+@model IEnumerable<DataLayer.Entities.Quiz>
+@{ ViewData["Title"] = "Quizzes"; var lessonId = ViewBag.LessonId; }
+<div class="d-flex justify-content-between align-items-center mb-4"><h2>Quiz for Lesson</h2><div><a href="javascript:history.back()" class="btn btn-outline-secondary me-2">Back</a>@if(!Model.Any()){<a asp-action="Create" asp-route-lessonId="@lessonId" class="btn btn-primary"><i class="bi bi-plus-lg me-1"></i> Add Quiz</a>}</div></div>
+<div class="card shadow-sm border-0"><div class="card-body p-0"><table class="table table-hover mb-0"><thead class="table-light"><tr><th>Title</th><th>Questions</th><th>Pass Mark</th><th>Attempts</th><th>Status</th><th class="text-end">Actions</th></tr></thead><tbody>
+@if(!Model.Any()){<tr><td colspan="6" class="text-center py-4">No quiz exists for this lesson.</td></tr>}
+@foreach (var quiz in Model)
+{
+    <tr><td class="fw-semibold">@quiz.Title</td><td>@quiz.Questions.Count</td><td>@quiz.PassingScore%</td><td>@quiz.Attempts.Count</td><td><span class="badge @(quiz.IsPublished ? "bg-success" : "bg-secondary")">@(quiz.IsPublished ? "Published" : "Draft")</span></td><td class="text-end"><a asp-action="Details" asp-route-id="@quiz.Id" class="btn btn-sm btn-outline-secondary"><i class="bi bi-eye"></i></a> <a asp-action="Edit" asp-route-id="@quiz.Id" class="btn btn-sm btn-outline-primary"><i class="bi bi-pencil"></i></a> <form asp-action="Delete" asp-route-id="@quiz.Id" method="post" class="d-inline" data-confirm="Delete this quiz and its questions?">@Html.AntiForgeryToken()<input type="hidden" name="lessonId" value="@quiz.LessonId" /><button class="btn btn-sm btn-outline-danger"><i class="bi bi-trash"></i></button></form></td></tr>
+}
+</tbody></table></div></div>

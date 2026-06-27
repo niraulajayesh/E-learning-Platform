@@ -1,0 +1,6 @@
+@model DataLayer.Entities.FlashcardSet
+@{
+    ViewData["Title"] = "Create Flashcard Set";
+}
+<div class="d-flex justify-content-between align-items-center mb-4"><h2>Create Flashcard Set</h2><a href="/Flashcards" class="btn btn-outline-secondary">Back</a></div>
+@await Html.PartialAsync("_Form", Model)

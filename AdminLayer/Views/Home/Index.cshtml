@@ -1,0 +1,15 @@
+﻿@{
+    ViewData["Title"] = "Dashboard";
+}
+<div class="row g-3 mb-4">
+    <div class="col-md-3"><div class="card border-0 shadow-sm h-100"><div class="card-body"><div class="text-muted">Total Users</div><h2>@ViewBag.TotalUsers</h2><span class="small text-muted">@ViewBag.TotalStudents students, @ViewBag.TotalInstructors instructors</span></div></div></div>
+    <div class="col-md-3"><div class="card border-0 shadow-sm h-100"><div class="card-body"><div class="text-muted">Courses</div><h2>@ViewBag.TotalCourses</h2><span class="small text-muted">Published and draft catalog</span></div></div></div>
+    <div class="col-md-3"><div class="card border-0 shadow-sm h-100"><div class="card-body"><div class="text-muted">Enrollments</div><h2>@ViewBag.TotalEnrollments</h2><span class="small text-muted">@ViewBag.ActiveEnrollments active now</span></div></div></div>
+    <div class="col-md-3"><div class="card border-0 shadow-sm h-100"><div class="card-body"><div class="text-muted">Revenue Ready</div><h2>$@ViewBag.TotalRevenue</h2><span class="small text-muted">Payment aggregate</span></div></div></div>
+</div>
+<div class="row g-3 mb-4">
+    <div class="col-md-6"><div class="card border-0 shadow-sm"><div class="card-body"><div class="d-flex justify-content-between"><span class="fw-semibold">Course Completion Rate</span><span>@ViewBag.CourseCompletionRate%</span></div><div class="progress mt-2"><div class="progress-bar bg-success" style="width:@ViewBag.CourseCompletionRate%"></div></div></div></div></div>
+    <div class="col-md-6"><div class="card border-0 shadow-sm"><div class="card-body"><div class="d-flex justify-content-between"><span class="fw-semibold">Quiz Pass Rate</span><span>@ViewBag.QuizPassRate%</span></div><div class="progress mt-2"><div class="progress-bar bg-info" style="width:@ViewBag.QuizPassRate%"></div></div></div></div></div>
+</div>
+<div class="card shadow-sm border-0"><div class="card-body"><h5 class="card-title">Operations</h5><div class="row g-2"><div class="col-md-4"><a href="/Courses" class="btn btn-outline-primary w-100">Courses</a></div><div class="col-md-4"><a href="/Users" class="btn btn-outline-primary w-100">Users</a></div><div class="col-md-4"><a href="/SiteSettings" class="btn btn-outline-primary w-100">CMS</a></div></div></div></div>
+

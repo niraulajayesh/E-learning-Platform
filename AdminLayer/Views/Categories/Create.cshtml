@@ -1,0 +1,31 @@
+@model DataLayer.Entities.Category
+@{
+    ViewData["Title"] = Model.Id == 0 ? "Create Category" : "Edit Category";
+}
+
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h2>@ViewData["Title"]</h2>
+    <a href="/Categories" class="btn btn-outline-secondary">Back to List</a>
+</div>
+
+<div class="card shadow-sm border-0" style="max-width: 720px;">
+    <div class="card-body">
+        <form method="post">
+            @Html.AntiForgeryToken()
+            <input type="hidden" asp-for="Id" />
+            <div asp-validation-summary="ModelOnly" class="text-danger mb-3"></div>
+            <div class="row g-3">
+                <div class="col-md-8"><label asp-for="Name" class="form-label fw-bold">Name</label><input asp-for="Name" class="form-control" required maxlength="100" /></div>
+                <div class="col-md-4"><label asp-for="DisplayOrder" class="form-label fw-bold">Order</label><input asp-for="DisplayOrder" type="number" class="form-control" /></div>
+                <div class="col-12"><label asp-for="Slug" class="form-label fw-bold">Slug</label><input asp-for="Slug" class="form-control" maxlength="120" placeholder="Auto-generated if blank" /></div>
+                <div class="col-12"><label asp-for="Description" class="form-label fw-bold">Description</label><textarea asp-for="Description" class="form-control" rows="3"></textarea></div>
+                <div class="col-md-6"><label asp-for="IconUrl" class="form-label fw-bold">Icon URL</label><input asp-for="IconUrl" class="form-control" /></div>
+                <div class="col-md-6"><label asp-for="BannerUrl" class="form-label fw-bold">Banner URL</label><input asp-for="BannerUrl" class="form-control" /></div>
+                <div class="col-12 form-check ms-2"><input asp-for="IsActive" class="form-check-input" /><label asp-for="IsActive" class="form-check-label fw-bold">Active</label></div>
+            </div>
+            <button type="submit" class="btn btn-primary mt-4"><i class="bi bi-save me-1"></i> Save Category</button>
+        </form>
+    </div>
+</div>
+@section Scripts { <partial name="_ValidationScriptsPartial" /> }
+

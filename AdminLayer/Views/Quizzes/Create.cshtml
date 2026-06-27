@@ -1,0 +1,74 @@
+@model AdminLayer.Models.QuizCreateViewModel
+@{
+    var isEdit = Model.Id != Guid.Empty;
+    ViewData["Title"] = isEdit ? "Edit Quiz" : "Create Quiz";
+    var lessons = ViewBag.Lessons as List<DataLayer.Entities.Lesson> ?? new();
+    var categories = ViewBag.Categories as List<DataLayer.Entities.Category> ?? new();
+    var difficulties = ViewBag.Difficulties as string[] ?? new[] { "Easy", "Medium", "Hard" };
+    var bankQuestions = ViewBag.BankQuestions as List<DataLayer.Entities.QuestionBankQuestion> ?? new();
+}
+<div class="d-flex justify-content-between align-items-center mb-4"><div><h2>@ViewData["Title"]</h2><p class="text-muted mb-0">Create and manage quiz questions without database edits.</p></div><a href="@(isEdit ? $"/Quizzes/Details/{Model.Id}" : "/Quizzes")" class="btn btn-outline-secondary">Back</a></div>
+<form method="post" class="card shadow-sm border-0">
+    @Html.AntiForgeryToken()
+    <input type="hidden" asp-for="Id" />
+    <div class="card-body">
+        <div asp-validation-summary="All" class="text-danger mb-3"></div>
+        <div class="row g-3 mb-4">
+            <div class="col-md-5"><label class="form-label fw-bold">Lesson</label><select asp-for="LessonId" class="form-select" required><option value="">Select lesson</option>@foreach (var lesson in lessons) { <option value="@lesson.Id" selected="@(Model.LessonId == lesson.Id)">@lesson.Section?.Course?.Title / @lesson.Title</option> }</select></div>
+            <div class="col-md-5"><label class="form-label fw-bold">Title</label><input asp-for="Title" class="form-control" required /></div>
+            <div class="col-md-2"><label class="form-label fw-bold">Passing %</label><input asp-for="PassingScore" type="number" min="0" max="100" class="form-control" /></div>
+            <div class="col-md-2"><label class="form-label fw-bold">Time Limit</label><input asp-for="TimeLimitMinutes" type="number" min="0" class="form-control" /></div>
+            <div class="col-md-2"><label class="form-label fw-bold">Max Attempts</label><input asp-for="MaxAttempts" type="number" min="0" class="form-control" /></div>
+            <div class="col-md-8"><label class="form-label fw-bold">Description</label><input asp-for="Description" class="form-control" /></div>
+            <div class="col-12 d-flex flex-wrap gap-4"><div class="form-check"><input asp-for="ShuffleQuestions" class="form-check-input" /><label class="form-check-label">Shuffle questions</label></div><div class="form-check"><input asp-for="ShuffleAnswers" class="form-check-input" /><label class="form-check-label">Shuffle answers</label></div><div class="form-check"><input asp-for="ShowAnswersAfterSubmission" class="form-check-input" /><label class="form-check-label">Show answers after submission</label></div><div class="form-check"><input asp-for="IsPublished" class="form-check-input" /><label class="form-check-label">Published</label></div></div>
+        </div>
+
+        <div class="border rounded p-3 mb-4 bg-light-subtle">
+            <div class="d-flex justify-content-between align-items-center mb-2"><h3 class="h6 mb-0">Add from Question Bank</h3><input id="bankSearch" class="form-control form-control-sm" style="max-width:320px" placeholder="Search bank questions" /></div>
+            <div class="table-responsive" style="max-height:280px;overflow:auto;"><table class="table table-sm align-middle mb-0"><thead><tr><th></th><th>Question</th><th>Category</th><th>Difficulty</th><th>Topic</th></tr></thead><tbody>
+                @foreach (var q in bankQuestions)
+                {
+                    <tr class="bank-row" data-search="@((q.Text + " " + q.Category?.Name + " " + q.Difficulty + " " + q.Topic).ToLowerInvariant())"><td><input type="checkbox" name="selectedBankQuestionIds" value="@q.Id" /></td><td>@(q.Text.Length > 110 ? q.Text[..110] + "..." : q.Text)</td><td>@q.Category?.Name</td><td>@q.Difficulty</td><td>@q.Topic</td></tr>
+                }
+                @if (!bankQuestions.Any()) { <tr><td colspan="5" class="text-muted text-center py-3">No published bank questions available.</td></tr> }
+            </tbody></table></div>
+            <div class="small text-muted mt-2">Checked bank questions are appended when you save.</div>
+        </div>
+
+        <div class="d-flex justify-content-between align-items-center mb-2"><h3 class="h5 mb-0">Quiz Questions</h3><button type="button" class="btn btn-sm btn-outline-primary" id="addQuestion">Add Question</button></div>
+        <div id="questions" class="d-grid gap-3">
+        @for (var i = 0; i < Model.Questions.Count; i++)
+        {
+            var q = Model.Questions[i];
+            <div class="border rounded-3 p-3 bg-light-subtle q-row">
+                <input type="hidden" name="Questions[@i].Id" value="@q.Id" />
+                <input type="hidden" name="Questions[@i].QuestionBankQuestionId" value="@q.QuestionBankQuestionId" />
+                <input type="hidden" name="Questions[@i].Order" value="@(i+1)" />
+                <div class="d-flex justify-content-between align-items-center mb-3"><strong>Question @(i + 1)</strong><div class="btn-group btn-group-sm">@if(isEdit && q.Id != Guid.Empty){<button formaction="/Quizzes/MoveQuestion/@Model.Id/@q.Id?direction=up" formmethod="post" class="btn btn-outline-secondary"><i class="bi bi-arrow-up"></i></button><button formaction="/Quizzes/MoveQuestion/@Model.Id/@q.Id?direction=down" formmethod="post" class="btn btn-outline-secondary"><i class="bi bi-arrow-down"></i></button><button formaction="/Quizzes/DuplicateQuestion/@Model.Id/@q.Id" formmethod="post" class="btn btn-outline-secondary"><i class="bi bi-files"></i></button><button formaction="/Quizzes/DeleteQuestion/@Model.Id/@q.Id" formmethod="post" class="btn btn-outline-danger"><i class="bi bi-trash"></i></button>}</div></div>
+                <div class="row g-3">
+                    <div class="col-md-7"><label class="form-label fw-bold">Question Text</label><textarea name="Questions[@i].Text" class="form-control" rows="2">@q.Text</textarea></div>
+                    <div class="col-md-2"><label class="form-label fw-bold">Points</label><input name="Questions[@i].Points" value="@q.Points" type="number" min="1" class="form-control" /></div>
+                    <div class="col-md-3"><label class="form-label fw-bold">Difficulty</label><select name="Questions[@i].Difficulty" class="form-select">@foreach(var d in difficulties){<option value="@d" selected="@(q.Difficulty == d)">@d</option>}</select></div>
+                    <div class="col-md-5"><label class="form-label fw-bold">Category</label><select name="Questions[@i].CategoryId" class="form-select"><option value="">None</option>@foreach(var c in categories){<option value="@c.Id" selected="@(q.CategoryId == c.Id)">@c.Name</option>}</select></div>
+                    <div class="col-md-7"><label class="form-label fw-bold">Optional Image URL</label><input name="Questions[@i].ImageUrl" value="@q.ImageUrl" class="form-control" /></div>
+                    <div class="col-12"><label class="form-label fw-bold">Explanation</label><input name="Questions[@i].Explanation" value="@q.Explanation" class="form-control" /></div>
+                    @for (var a = 0; a < 6; a++)
+                    {
+                        var answerValue = q.Answers.Count > a ? q.Answers[a] : "";
+                        var label = ((char)('A' + a)).ToString();
+                        <div class="col-md-6"><label class="form-label">Option @label @(a < 4 ? "" : "(optional)")</label><div class="input-group"><div class="input-group-text"><input type="radio" name="Questions[@i].CorrectAnswerIndex" value="@a" @(q.CorrectAnswerIndex == a ? "checked" : "") /></div><input name="Questions[@i].Answers[@a]" value="@answerValue" class="form-control" /></div></div>
+                    }
+                </div>
+            </div>
+        }
+        </div>
+    </div>
+    <div class="card-footer text-end bg-white"><button type="submit" class="btn btn-primary">@(isEdit ? "Save Quiz" : "Create Quiz")</button></div>
+</form>
+@section Scripts{
+<script>
+const bankSearch=document.getElementById('bankSearch');
+if(bankSearch){bankSearch.addEventListener('input',()=>{const t=bankSearch.value.toLowerCase();document.querySelectorAll('.bank-row').forEach(r=>r.style.display=r.dataset.search.includes(t)?'':'none');});}
+let qi=document.querySelectorAll('.q-row').length;
+document.getElementById('addQuestion').addEventListener('click',()=>{const d=document.createElement('div');d.className='border rounded-3 p-3 bg-light-subtle q-row';d.innerHTML=`<input type="hidden" name="Questions[${qi}].Order" value="${qi+1}" /><div class="mb-3"><strong>Question ${qi+1}</strong></div><div class="row g-3"><div class="col-md-7"><label class="form-label fw-bold">Question Text</label><textarea name="Questions[${qi}].Text" class="form-control" rows="2"></textarea></div><div class="col-md-2"><label class="form-label fw-bold">Points</label><input name="Questions[${qi}].Points" value="1" type="number" min="1" class="form-control" /></div><div class="col-md-3"><label class="form-label fw-bold">Difficulty</label><select name="Questions[${qi}].Difficulty" class="form-select"><option>Easy</option><option>Medium</option><option>Hard</option></select></div><div class="col-md-5"><label class="form-label fw-bold">Category</label><select name="Questions[${qi}].CategoryId" class="form-select"><option value="">None</option>@foreach(var c in categories){<option value="@c.Id">@c.Name</option>}</select></div><div class="col-md-7"><label class="form-label fw-bold">Optional Image URL</label><input name="Questions[${qi}].ImageUrl" class="form-control" /></div><div class="col-12"><label class="form-label fw-bold">Explanation</label><input name="Questions[${qi}].Explanation" class="form-control" /></div>${['A','B','C','D','E','F'].map((l,a)=>`<div class="col-md-6"><label class="form-label">Option ${l} ${a>3?'(optional)':''}</label><div class="input-group"><div class="input-group-text"><input type="radio" name="Questions[${qi}].CorrectAnswerIndex" value="${a}" ${a===0?'checked':''} /></div><input name="Questions[${qi}].Answers[${a}]" class="form-control" /></div></div>`).join('')}</div>`;document.getElementById('questions').appendChild(d);qi++;});
+</script>}

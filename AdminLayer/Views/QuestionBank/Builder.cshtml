@@ -1,0 +1,24 @@
+@model AdminLayer.Models.QuestionBankTestBuilderViewModel
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <div><h1 class="h3 mb-1">Test Builder</h1><p class="text-muted mb-0">Generate a practice test from published bank questions.</p></div>
+    <a class="btn btn-outline-secondary" asp-action="Index"><i class="bi bi-arrow-left"></i> Back</a>
+</div>
+@if (Model.Errors.Any()) { <div class="alert alert-danger"><ul class="mb-0">@foreach (var error in Model.Errors) { <li>@error</li> }</ul></div> }
+<div class="card border-0 shadow-sm"><div class="card-body">
+<form asp-action="Builder" method="post">@Html.AntiForgeryToken()
+    <div class="row g-3">
+        <div class="col-md-6"><label class="form-label" asp-for="Title">Title</label><input class="form-control" asp-for="Title" /></div>
+        <div class="col-md-6"><label class="form-label" asp-for="CategoryId">Category</label><select class="form-select" asp-for="CategoryId"><option value="">Select category</option>@foreach (var c in Model.Categories) { <option value="@c.Id">@c.Name</option> }</select></div>
+        <div class="col-12"><label class="form-label" asp-for="Description">Description</label><textarea class="form-control" asp-for="Description" rows="2"></textarea></div>
+        <div class="col-md-4"><label class="form-label" asp-for="EasyCount">Easy questions</label><input class="form-control" asp-for="EasyCount" type="number" min="0" /></div>
+        <div class="col-md-4"><label class="form-label" asp-for="MediumCount">Medium questions</label><input class="form-control" asp-for="MediumCount" type="number" min="0" /></div>
+        <div class="col-md-4"><label class="form-label" asp-for="HardCount">Hard questions</label><input class="form-control" asp-for="HardCount" type="number" min="0" /></div>
+        <div class="col-md-6"><label class="form-label" asp-for="TimeLimitMinutes">Time limit minutes</label><input class="form-control" asp-for="TimeLimitMinutes" type="number" min="0" /></div>
+        <div class="col-md-6"><label class="form-label" asp-for="PassingScorePercent">Passing score percent</label><input class="form-control" asp-for="PassingScorePercent" type="number" min="1" max="100" /></div>
+        <div class="col-md-6"><div class="form-check"><input class="form-check-input" asp-for="ShuffleQuestions" /><label class="form-check-label" asp-for="ShuffleQuestions">Shuffle questions</label></div></div>
+        <div class="col-md-6"><div class="form-check"><input class="form-check-input" asp-for="ShuffleAnswers" /><label class="form-check-label" asp-for="ShuffleAnswers">Shuffle answers</label></div></div>
+    </div>
+    <button type="submit" class="btn btn-primary mt-4"><i class="bi bi-magic"></i> Generate Practice Test</button>
+</form>
+</div></div>
+

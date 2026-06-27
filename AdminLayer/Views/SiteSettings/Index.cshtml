@@ -1,0 +1,36 @@
+@model IEnumerable<DataLayer.Entities.SiteSetting>
+@{
+    ViewData["Title"] = "Site Settings";
+}
+
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h2>Site Settings</h2>
+</div>
+
+<div class="card shadow-sm border-0">
+    <div class="card-body p-0">
+        <table class="table table-hover mb-0">
+            <thead class="table-light">
+                <tr>
+                    <th>Key</th>
+                    <th>Value</th>
+                    <th>Description</th>
+                    <th class="text-end">Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var setting in Model)
+                {
+                    <tr>
+                        <td class="fw-bold">@setting.Key</td>
+                        <td class="text-truncate" style="max-width: 200px;">@setting.Value</td>
+                        <td>@setting.Description</td>
+                        <td class="text-end">
+                            <a href="/SiteSettings/Edit/@setting.Id" class="btn btn-sm btn-outline-primary"><i class="bi bi-pencil"></i></a>
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+</div>

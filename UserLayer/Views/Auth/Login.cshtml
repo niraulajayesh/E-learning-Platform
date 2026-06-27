@@ -1,0 +1,71 @@
+@{
+    ViewData["Title"] = "Sign In";
+    Layout = null;
+}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Sign In — LearnHub</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Outfit:wght@800;900&display=swap" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css">
+    <style>
+        body { font-family: 'Inter', sans-serif; background: linear-gradient(135deg, #0f0a1e 0%, #1e1050 60%, #2d1b69 100%); min-height: 100vh; display: flex; align-items: center; justify-content: center; }
+        .auth-card { background: rgba(255,255,255,0.05); backdrop-filter: blur(20px); border: 1px solid rgba(255,255,255,0.1); border-radius: 20px; padding: 2.5rem; width: 100%; max-width: 440px; color: #fff; }
+        .brand { font-family: 'Outfit', sans-serif; font-weight: 900; font-size: 1.8rem; background: linear-gradient(135deg, #8b5cf6, #c4b5fd); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; text-decoration: none; }
+        .form-control { background: rgba(255,255,255,0.07); border: 1px solid rgba(255,255,255,0.15); color: #fff; border-radius: 10px; padding: 0.75rem 1rem; }
+        .form-control:focus { background: rgba(255,255,255,0.1); border-color: #8b5cf6; box-shadow: 0 0 0 3px rgba(139,92,246,0.25); color: #fff; }
+        .form-control::placeholder { color: rgba(255,255,255,0.4); }
+        .form-label { color: #d1d5db; font-size: 0.88rem; font-weight: 500; }
+        .btn-auth { background: linear-gradient(135deg, #6c2bd9, #8b5cf6); border: none; color: #fff; width: 100%; border-radius: 10px; padding: 0.8rem; font-weight: 700; font-size: 1rem; transition: all 0.25s; }
+        .btn-auth:hover { transform: translateY(-2px); box-shadow: 0 8px 25px rgba(108,43,217,0.5); color: #fff; }
+        .link-purple { color: #c4b5fd; text-decoration: none; }
+        .link-purple:hover { color: #e9d5ff; text-decoration: underline; }
+        .divider { display: flex; align-items: center; gap: 1rem; color: rgba(255,255,255,0.3); font-size: 0.82rem; }
+        .divider::before, .divider::after { content: ''; flex: 1; height: 1px; background: rgba(255,255,255,0.1); }
+    </style>
+</head>
+<body>
+    <div class="auth-card">
+        <div class="text-center mb-4">
+            <a href="/" class="brand">LearnHub</a>
+            <h2 class="mt-3 mb-1" style="font-size:1.5rem;font-weight:700;">Welcome back!</h2>
+            <p style="color:#9ca3af;font-size:0.9rem;">Sign in to continue your learning journey</p>
+        </div>
+
+        @if (TempData["Error"] != null)
+        {
+            <div class="alert alert-danger border-0 rounded-3 mb-3" style="background:rgba(239,68,68,0.15);color:#fca5a5;border-color:rgba(239,68,68,0.3)!important;border:1px solid;">
+                <i class="bi bi-exclamation-circle me-2"></i>@TempData["Error"]
+            </div>
+        }
+
+        <form method="post" action="/Auth/Login">
+            @Html.AntiForgeryToken()
+            <input type="hidden" name="returnUrl" value="@ViewData["ReturnUrl"]" />
+            <div class="mb-3">
+                <label class="form-label">Email Address</label>
+                <input type="email" name="email" class="form-control" placeholder="you@example.com" required />
+            </div>
+            <div class="mb-4">
+                <div class="d-flex justify-content-between">
+                    <label class="form-label">Password</label>
+                    <a href="#" class="link-purple" style="font-size:0.82rem;">Forgot password?</a>
+                </div>
+                <input type="password" name="password" class="form-control" placeholder="Enter your password" required />
+            </div>
+            <button type="submit" class="btn btn-auth">Sign In</button>
+        </form>
+
+        <div class="divider my-4">or</div>
+
+        <p class="text-center mb-0" style="font-size:0.9rem;color:#9ca3af;">
+            Don't have an account? <a href="/Auth/Register" class="link-purple fw-600">Create one free</a>
+        </p>
+    </div>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

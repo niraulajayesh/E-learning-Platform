@@ -1,0 +1,152 @@
+﻿@model IEnumerable<DataLayer.Entities.FlashcardSet>
+@{
+    var sets = Model.ToList();
+    var categories = ViewBag.Categories as List<DataLayer.Entities.Category> ?? new();
+    int? categoryId = ViewBag.CategoryId as int?;
+    var searchQuery = ViewBag.SearchQuery as string;
+    var selectedCategory = categories.FirstOrDefault(c => c.Id == categoryId);
+    var groupedSets = sets.GroupBy(s => s.Category?.Name ?? "ASVAB").OrderBy(g => g.First().Category?.DisplayOrder ?? 999);
+}
+
+<section class="premium-hero flashcard-hub-hero py-5">
+    <div class="container">
+        <div class="row align-items-end gy-4">
+            <div class="col-lg-8">
+                <span class="section-badge"><i class="bi bi-card-text"></i> ASVAB Flashcards</span>
+                <h1 class="section-title text-white mt-3 mb-2">Drill terms, formulas, and concepts by subject</h1>
+                <p class="flashcard-hero-copy">Focused card sets for vocabulary, math, science, electronics, mechanics, auto shop, and spatial reasoning review.</p>
+            </div>
+            <div class="col-lg-4">
+                <div class="flashcard-hub-stats">
+                    <div><strong>@sets.Count</strong><span>Sets</span></div>
+                    <div><strong>@sets.Sum(s => s.Flashcards?.Count ?? 0)</strong><span>Cards</span></div>
+                    <div><strong>@categories.Count</strong><span>Subjects</span></div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<div class="container py-5">
+    <div class="resource-toolbar mb-4">
+        <form action="/Flashcards" method="get" class="resource-search">
+            @if (categoryId.HasValue)
+            {
+                <input type="hidden" name="categoryId" value="@categoryId" />
+            }
+            <i class="bi bi-search"></i>
+            <input type="search" name="q" value="@searchQuery" placeholder="Search card sets, categories, or keywords" />
+            <button type="submit">Search</button>
+        </form>
+        <div class="d-flex gap-2 flex-wrap mt-3">
+            <a class="ux-chip @(categoryId == null ? "active" : "")" href="/Flashcards"><i class="bi bi-grid"></i> All</a>
+            @foreach (var category in categories)
+            {
+                <a class="ux-chip @(categoryId == category.Id ? "active" : "")" href="/Flashcards?categoryId=@category.Id@(string.IsNullOrWhiteSpace(searchQuery) ? "" : "&q=" + Uri.EscapeDataString(searchQuery))">@category.Name</a>
+            }
+        </div>
+        <div class="course-meta mt-3">
+            @(selectedCategory == null ? "Showing every flashcard set" : $"Showing {selectedCategory.Name} flashcards")@(string.IsNullOrWhiteSpace(searchQuery) ? "" : $" matching '{searchQuery}'")
+        </div>
+    </div>
+
+    @if (sets.Any())
+    {
+        <div class="flashcard-groups">
+            @foreach (var group in groupedSets)
+            {
+                <section class="flashcard-category-section">
+                    <div class="flashcard-category-heading">
+                        <div>
+                            <span class="section-badge"><i class="bi bi-layers"></i> @group.Key</span>
+                            <h2>@group.Sum(s => s.Flashcards?.Count ?? 0) cards across @group.Count() set@(group.Count() == 1 ? "" : "s")</h2>
+                        </div>
+                    </div>
+                    <div class="row g-4">
+                        @foreach (var set in group.OrderBy(s => s.Title))
+                        {
+                            var cardCount = set.Flashcards?.Count ?? 0;
+                            <div class="col-md-6 col-xl-4">
+                                <article class="flashcard-set-card h-100" data-set-id="@set.Id" data-card-count="@cardCount">
+                                    <div class="flashcard-card-top">
+                                        <span class="course-category">@(set.Category?.Name ?? "ASVAB")</span>
+                                        <span class="flashcard-count"><i class="bi bi-card-text"></i> @cardCount</span>
+                                    </div>
+                                    <h3>@set.Title</h3>
+                                    <p>@set.Description</p>
+                                    <div class="flashcard-progress-meta">
+                                        <span><strong data-known>0</strong> mastered</span>
+                                        <span><strong data-review>0</strong> review</span>
+                                        <span><strong data-remaining>@cardCount</strong> remaining</span>
+                                    </div>
+                                    <div class="flashcard-progress-bar"><div data-progress style="width:0%"></div></div>
+                                    <a href="/Flashcards/Study/@set.Id" class="btn-primary-custom mt-4" style="width:100%;border:none;">Study Set <i class="bi bi-arrow-right-circle"></i></a>
+                                </article>
+                            </div>
+                        }
+                    </div>
+                </section>
+            }
+        </div>
+    }
+    else
+    {
+        <div class="dashboard-card text-center py-5">
+            <i class="bi bi-card-text" style="font-size:3rem;color:var(--brand);"></i>
+            <h2 style="font-size:1.35rem;font-weight:900;margin-top:1rem;">No flashcards found</h2>
+            <p class="text-muted mb-4">Try a different keyword or browse every ASVAB flashcard set.</p>
+            <a href="/Flashcards" class="btn-primary-custom" style="width:auto;">Show All Flashcards</a>
+        </div>
+    }
+</div>
+
+@section Styles {
+    <style>
+        .flashcard-hero-copy { color:#cbd5e1; max-width:760px; line-height:1.8; margin:0; }
+        .flashcard-hub-stats { display:grid; grid-template-columns:repeat(3,1fr); gap:.75rem; border:1px solid rgba(255,255,255,.18); border-radius:16px; background:rgba(255,255,255,.1); padding:1rem; }
+        .flashcard-hub-stats div { text-align:center; border-radius:12px; background:rgba(255,255,255,.1); padding:.85rem; }
+        .flashcard-hub-stats strong { display:block; color:#fff; font-family:'Outfit',sans-serif; font-size:1.55rem; line-height:1; }
+        .flashcard-hub-stats span { display:block; color:#cbd5e1; font-size:.75rem; font-weight:900; margin-top:.35rem; text-transform:uppercase; }
+        .resource-toolbar { border:1px solid var(--line); border-radius:14px; background:#fff; padding:1rem; box-shadow:0 1px 2px rgba(16,24,40,.03); }
+        .resource-search { display:grid; grid-template-columns:auto 1fr auto; align-items:center; gap:.75rem; border:1px solid var(--line); border-radius:12px; background:#f8fafc; padding:.55rem .65rem; }
+        .resource-search input { border:0; outline:0; background:transparent; min-width:0; color:var(--ink); }
+        .resource-search button { border:0; border-radius:10px; background:linear-gradient(135deg,var(--brand),var(--brand-2)); color:#fff; font-weight:900; padding:.55rem 1rem; }
+        .flashcard-category-section + .flashcard-category-section { margin-top:3rem; }
+        .flashcard-category-heading { margin-bottom:1rem; }
+        .flashcard-category-heading h2 { font-size:1.25rem; font-weight:900; margin:.75rem 0 0; }
+        .flashcard-set-card { display:flex; flex-direction:column; border:1px solid var(--line); border-radius:14px; background:#fff; padding:1.15rem; box-shadow:0 1px 2px rgba(16,24,40,.03); transition:transform .2s ease, box-shadow .2s ease, border-color .2s ease; }
+        .flashcard-set-card:hover { transform:translateY(-4px); box-shadow:var(--shadow-md); border-color:rgba(49,87,213,.25); }
+        .flashcard-card-top { display:flex; justify-content:space-between; align-items:flex-start; gap:.75rem; margin-bottom:1rem; }
+        .flashcard-count { display:inline-flex; align-items:center; gap:.35rem; border-radius:999px; background:#f2f4f7; color:#475467; font-size:.76rem; font-weight:900; padding:.34rem .68rem; }
+        .flashcard-set-card h3 { font-size:1.08rem; font-weight:900; line-height:1.35; margin:0 0 .55rem; }
+        .flashcard-set-card p { color:var(--muted); line-height:1.7; font-size:.92rem; margin:0 0 1rem; }
+        .flashcard-progress-meta { display:grid; grid-template-columns:repeat(3,1fr); gap:.5rem; margin-top:auto; }
+        .flashcard-progress-meta span { border:1px solid var(--line); border-radius:10px; background:#f8fafc; color:var(--muted); font-size:.75rem; font-weight:800; padding:.55rem; text-align:center; }
+        .flashcard-progress-meta strong { display:block; color:var(--ink); font-size:1rem; }
+        .flashcard-progress-bar { height:8px; border-radius:999px; background:#e9edf5; overflow:hidden; margin-top:1rem; }
+        .flashcard-progress-bar div { height:100%; border-radius:999px; background:linear-gradient(90deg,var(--brand),var(--brand-2)); }
+        @@media (max-width:575.98px) { .flashcard-hub-stats, .resource-search, .flashcard-progress-meta { grid-template-columns:1fr; } .resource-search i { display:none; } .resource-search button { width:100%; } }
+    </style>
+}
+
+@section Scripts {
+    <script>
+        (() => {
+            document.querySelectorAll('[data-set-id]').forEach(card => {
+                const setId = card.dataset.setId;
+                const total = Number(card.dataset.cardCount || '0');
+                const state = JSON.parse(localStorage.getItem(`flashcards:${setId}`) || '{"known":[],"review":[]}');
+                const known = new Set(state.known || []);
+                const review = new Set(state.review || []);
+                const mastered = known.size;
+                const needsReview = review.size;
+                const remaining = Math.max(total - mastered - needsReview, 0);
+                const progress = total ? Math.round((mastered / total) * 100) : 0;
+                card.querySelector('[data-known]').textContent = mastered;
+                card.querySelector('[data-review]').textContent = needsReview;
+                card.querySelector('[data-remaining]').textContent = remaining;
+                card.querySelector('[data-progress]').style.width = `${progress}%`;
+            });
+        })();
+    </script>
+}

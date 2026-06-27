@@ -1,0 +1,61 @@
+@model DataLayer.Entities.QuestionBankQuestion
+@{
+    var categories = ViewBag.Categories as List<DataLayer.Entities.Category> ?? new();
+    var difficulties = ViewBag.Difficulties as string[] ?? new[] { "Easy", "Medium", "Hard" };
+    var statuses = ViewBag.Statuses as string[] ?? new[] { "Draft", "Published", "Archived" };
+}
+<div asp-validation-summary="All" class="text-danger admin-form-alert mb-3"></div>
+<div class="row g-3">
+    <div class="col-md-4">
+        <label class="form-label" asp-for="CategoryId">Category</label>
+        <select class="form-select" asp-for="CategoryId">
+            <option value="">Select category</option>
+            @foreach (var category in categories)
+            {
+                <option value="@category.Id">@category.Name</option>
+            }
+        </select>
+    </div>
+    <div class="col-md-4">
+        <label class="form-label" asp-for="Topic">Topic</label>
+        <input class="form-control" asp-for="Topic" />
+    </div>
+    <div class="col-md-4">
+        <label class="form-label" asp-for="Subtopic">Subtopic</label>
+        <input class="form-control" asp-for="Subtopic" />
+    </div>
+    <div class="col-md-4">
+        <label class="form-label" asp-for="Difficulty">Difficulty</label>
+        <select class="form-select" asp-for="Difficulty">@foreach (var item in difficulties) { <option value="@item">@item</option> }</select>
+    </div>
+    <div class="col-md-4">
+        <label class="form-label" asp-for="Status">Status</label>
+        <select class="form-select" asp-for="Status">@foreach (var item in statuses) { <option value="@item">@item</option> }</select>
+    </div>
+    <div class="col-md-4">
+        <label class="form-label" asp-for="EstimatedTimeSeconds">Estimated time (seconds)</label>
+        <input class="form-control" asp-for="EstimatedTimeSeconds" type="number" min="15" />
+    </div>
+    <div class="col-12">
+        <label class="form-label" asp-for="Text">Question Text</label>
+        <textarea class="form-control" asp-for="Text" rows="4"></textarea>
+    </div>
+    <div class="col-md-6"><label class="form-label" asp-for="QuestionImageUrl">Question image URL</label><input class="form-control" asp-for="QuestionImageUrl" /></div>
+    <div class="col-md-6"><label class="form-label" asp-for="ExplanationImageUrl">Explanation image URL</label><input class="form-control" asp-for="ExplanationImageUrl" /></div>
+    <div class="col-md-6"><label class="form-label" asp-for="OptionA">Option A</label><input class="form-control" asp-for="OptionA" /></div>
+    <div class="col-md-6"><label class="form-label" asp-for="OptionB">Option B</label><input class="form-control" asp-for="OptionB" /></div>
+    <div class="col-md-6"><label class="form-label" asp-for="OptionC">Option C</label><input class="form-control" asp-for="OptionC" /></div>
+    <div class="col-md-6"><label class="form-label" asp-for="OptionD">Option D</label><input class="form-control" asp-for="OptionD" /></div>
+    <div class="col-md-6"><label class="form-label" asp-for="OptionE">Option E</label><input class="form-control" asp-for="OptionE" /></div>
+    <div class="col-md-6"><label class="form-label" asp-for="OptionF">Option F</label><input class="form-control" asp-for="OptionF" /></div>
+    <div class="col-md-3">
+        <label class="form-label" asp-for="CorrectOption">Correct Answer</label>
+        <select class="form-select" asp-for="CorrectOption"><option>A</option><option>B</option><option>C</option><option>D</option><option>E</option><option>F</option></select>
+    </div>
+    <div class="col-md-9"><label class="form-label" asp-for="SourceReference">Source reference</label><input class="form-control" asp-for="SourceReference" /></div>
+    <div class="col-12"><label class="form-label" asp-for="Explanation">Detailed Explanation</label><textarea class="form-control" asp-for="Explanation" rows="4"></textarea></div>
+    <div class="col-12"><label class="form-label" asp-for="WrongAnswerExplanation">Wrong-answer notes</label><textarea class="form-control" asp-for="WrongAnswerExplanation" rows="3"></textarea></div>
+    <div class="col-12"><label class="form-label" asp-for="Tags">Tags</label><input class="form-control" asp-for="Tags" /></div>
+    <div class="col-md-3"><label class="form-label" asp-for="DisplayOrder">Display Order</label><input class="form-control" asp-for="DisplayOrder" type="number" /></div>
+</div>
+

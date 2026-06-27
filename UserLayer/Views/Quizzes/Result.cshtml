@@ -1,0 +1,53 @@
+@model UserLayer.Models.QuizResultViewModel
+@{
+    var quiz = Model.Quiz;
+    var attempt = Model.Attempt;
+}
+
+<div class="hero-dark" style="padding:2.5rem 0;">
+    <div class="container text-center">
+        <span class="section-badge">Quiz result</span>
+        <h1 class="section-title text-white mt-2 mb-2">@(attempt.IsPassed ? "Passed" : "Not passed")</h1>
+        <p style="color:#c4b5fd;margin:0;">@quiz.Title</p>
+    </div>
+</div>
+
+<div class="container py-5">
+    <section class="dashboard-card text-center mb-4">
+        <div style="font-size:3rem;font-weight:900;color:@(attempt.IsPassed ? "#16a34a" : "#dc2626");">@attempt.Score.ToString("0.##")%</div>
+        <p class="text-muted mb-3">@attempt.EarnedPoints of @attempt.TotalPoints points · Passing score @quiz.PassingScore%</p>
+        <div class="d-flex justify-content-center gap-2 flex-wrap">
+            <a href="/Lessons/Watch/@quiz.LessonId" class="btn-outline-custom">Back to Lesson</a>
+            <a href="/Quizzes/Take/@quiz.Id" class="btn-primary-custom">Attempt Again</a>
+        </div>
+    </section>
+
+    @if (quiz.ShowAnswersAfterSubmission)
+    {
+        <div class="d-grid gap-3">
+            @foreach (var question in quiz.Questions.OrderBy(q => q.Order))
+            {
+                var selectedAnswerId = Model.SelectedAnswers.TryGetValue(question.Id, out var selected) ? selected : Guid.Empty;
+                <section class="dashboard-card">
+                    <h2 style="font-weight:800;font-size:1rem;margin-bottom:1rem;">@question.Text</h2>
+                    <div class="d-grid gap-2">
+                        @foreach (var answer in question.Answers.OrderBy(a => a.Order))
+                        {
+                            var selectedClass = answer.Id == selectedAnswerId ? "border:2px solid #8b5cf6;" : "border:1px solid #e5e7eb;";
+                            var bg = answer.IsCorrect ? "#dcfce7" : answer.Id == selectedAnswerId ? "#fee2e2" : "#fff";
+                            <div style="padding:0.8rem;border-radius:10px;background:@bg;@selectedClass">
+                                @if (answer.IsCorrect) { <i class="bi bi-check-circle-fill text-success me-1"></i> }
+                                else if (answer.Id == selectedAnswerId) { <i class="bi bi-x-circle-fill text-danger me-1"></i> }
+                                @answer.Text
+                            </div>
+                        }
+                    </div>
+                    @if (!string.IsNullOrWhiteSpace(question.Explanation))
+                    {
+                        <p class="text-muted mt-3 mb-0" style="font-size:0.9rem;">@question.Explanation</p>
+                    }
+                </section>
+            }
+        </div>
+    }
+</div>

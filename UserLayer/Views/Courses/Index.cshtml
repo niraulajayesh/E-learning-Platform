@@ -1,0 +1,103 @@
+@{
+    var courses = ViewBag.Courses as List<DataLayer.Entities.Course> ?? new();
+    var categories = ViewBag.Categories as List<DataLayer.Entities.Category> ?? new();
+    var totalCount = (int)(ViewBag.TotalCount ?? courses.Count);
+    int? selectedCategory = ViewBag.SelectedCategory as int?;
+    var selectedLevel = ViewBag.SelectedLevel as string;
+    var selectedSort = ViewBag.SelectedSort as string;
+    var searchQuery = ViewData["SearchQuery"] as string;
+
+    var sorts = new[]
+    {
+        ("featured", "Featured", "bi-star-fill"),
+        ("popular", "Popular", "bi-fire"),
+        ("rating", "Rating", "bi-star-half"),
+        ("newest", "Newest", "bi-calendar3"),
+        ("price_low", "Price: Low", "bi-arrow-down-up"),
+        ("price_high", "Price: High", "bi-arrow-up-down")
+    };
+}
+
+<section class="premium-hero" style="padding:3.7rem 0 3rem;">
+    <div class="container">
+        <div class="row align-items-end gy-4">
+            <div class="col-lg-7">
+                <span class="section-badge"><i class="bi bi-collection-play"></i> Course catalog</span>
+                <h1 class="section-title text-white mt-3 mb-2">@ViewData["Title"]</h1>
+                <p style="color:#cbd5e1;margin:0;font-size:1rem;">@totalCount course@(totalCount == 1 ? "" : "s") available across focused learning paths.</p>
+            </div>
+            <div class="col-lg-5">
+                <form action="/Courses" method="get" class="d-flex gap-2 p-2" style="background:rgba(255,255,255,.12);border:1px solid rgba(255,255,255,.18);border-radius:16px;">
+                    <input type="text" name="q" value="@searchQuery" class="form-control border-0" placeholder="Search title, topic, or keyword" style="border-radius:12px;" />
+                    <button type="submit" class="btn-primary-custom" style="border-radius:12px;border:none;padding:.65rem 1rem;width:auto;">Search</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</section>
+
+<div class="container py-5">
+    <div class="market-toolbar mb-3">
+        <div class="d-flex justify-content-between align-items-center gap-3 flex-wrap">
+            <div>
+                <div class="d-flex align-items-center gap-2 flex-wrap">
+                    <span class="course-count-chip"><i class="bi bi-collection me-1"></i>@totalCount results</span>
+                    <span class="course-count-chip"><i class="bi bi-funnel me-1"></i>@(selectedCategory.HasValue ? "Filtered" : "All categories")</span>
+                </div>
+            </div>
+            <div class="d-flex align-items-center gap-2 flex-wrap">
+                @foreach (var sort in sorts)
+                {
+                    var isActive = (selectedSort ?? "") == sort.Item1;
+                    <a href="/Courses?sort=@sort.Item1@(!string.IsNullOrEmpty(searchQuery) ? "&q=" + searchQuery : "")@(selectedCategory.HasValue ? "&categoryId=" + selectedCategory : "")@(!string.IsNullOrEmpty(selectedLevel) ? "&level=" + selectedLevel : "")" class="ux-chip @(isActive ? "active" : "")"><i class="bi @sort.Item3"></i>@sort.Item2</a>
+                }
+            </div>
+        </div>
+    </div>
+
+    <div class="row g-4">
+        <aside class="col-lg-3">
+            <div class="dashboard-card sticky-top" style="top:96px;">
+                <div class="d-flex align-items-center justify-content-between mb-3">
+                    <h2 style="font-size:1.05rem;font-weight:900;margin:0;">Filters</h2>
+                    <a href="/Courses" style="font-size:.82rem;color:var(--brand);text-decoration:none;font-weight:900;">Reset</a>
+                </div>
+
+                <div class="mb-4">
+                    <h3 class="course-meta" style="font-weight:900;text-transform:uppercase;letter-spacing:.06em;">Category</h3>
+                    <div class="d-grid gap-2 mt-2">
+                        <a href="/Courses@(!string.IsNullOrEmpty(selectedSort) ? "?sort=" + selectedSort : "")" class="text-decoration-none" style="color:@(selectedCategory == null ? "var(--brand)" : "var(--muted)");font-weight:900;"><i class="bi bi-grid me-1"></i>All categories</a>
+                        @foreach (var category in categories)
+                        {
+                            <a href="/Courses?categoryId=@category.Id@(!string.IsNullOrEmpty(selectedLevel) ? "&level=" + selectedLevel : "")@(!string.IsNullOrEmpty(selectedSort) ? "&sort=" + selectedSort : "")@(!string.IsNullOrEmpty(searchQuery) ? "&q=" + searchQuery : "")" class="text-decoration-none d-flex align-items-center justify-content-between" style="color:@(selectedCategory == category.Id ? "var(--brand)" : "var(--muted)");font-weight:@(selectedCategory == category.Id ? "900" : "700");"><span><i class="bi bi-folder me-1"></i>@category.Name</span><span class="course-meta">@(category.Courses?.Count ?? 0)</span></a>
+                        }
+                    </div>
+                </div>
+
+                <div>
+                    <h3 class="course-meta" style="font-weight:900;text-transform:uppercase;letter-spacing:.06em;">Level</h3>
+                    <div class="d-grid gap-2 mt-2">
+                        @foreach (var level in new[] { ("All Levels", ""), ("Beginner", "Beginner"), ("Intermediate", "Intermediate"), ("Advanced", "Advanced") })
+                        {
+                            var isActive = (selectedLevel ?? "") == level.Item2;
+                            <a href="/Courses?@(!string.IsNullOrEmpty(level.Item2) ? "level=" + level.Item2 : "")@(selectedCategory.HasValue ? "&categoryId=" + selectedCategory : "")@(!string.IsNullOrEmpty(selectedSort) ? "&sort=" + selectedSort : "")@( !string.IsNullOrEmpty(searchQuery) ? "&q=" + searchQuery : "")" class="d-flex align-items-center gap-2 text-decoration-none" style="color:@(isActive ? "var(--brand)" : "var(--muted)");font-weight:@(isActive ? "900" : "700");"><i class="bi @(isActive ? "bi-check-circle-fill" : "bi-circle")"></i>@level.Item1</a>
+                        }
+                    </div>
+                </div>
+            </div>
+        </aside>
+
+        <main class="col-lg-9">
+            @if (courses.Any())
+            {
+                <div class="row row-cols-1 row-cols-sm-2 row-cols-xl-3 g-4">
+                    @foreach (var course in courses) { @await Html.PartialAsync("_CourseCard", course) }
+                </div>
+            }
+            else
+            {
+                <div class="dashboard-card text-center py-5"><i class="bi bi-search" style="font-size:3rem;color:var(--brand);"></i><h2 style="font-size:1.35rem;font-weight:900;margin-top:1rem;">No courses found</h2><p class="text-muted mb-4">Try a different search term, category, or level.</p><a href="/Courses" class="btn-primary-custom">Browse All Courses</a></div>
+            }
+        </main>
+    </div>
+</div>

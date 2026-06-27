@@ -1,0 +1,15 @@
+@model int
+@{
+    var title = Model == 403 ? "Access denied" : Model == 404 ? "Page not found" : "Something went wrong";
+    var message = Model == 403 ? "Your account does not have access to this admin resource." : Model == 404 ? "The admin page you requested does not exist." : "The request could not be completed.";
+    ViewData["Title"] = title;
+}
+
+<div class="card shadow-sm border-0 mx-auto" style="max-width:720px;">
+    <div class="card-body text-center p-5">
+        <span class="badge text-bg-secondary mb-3">@Model</span>
+        <h1 class="h3 fw-bold mb-3">@title</h1>
+        <p class="text-muted">@message</p>
+        <a href="/Home" class="btn btn-primary mt-3">Admin dashboard</a>
+    </div>
+</div>

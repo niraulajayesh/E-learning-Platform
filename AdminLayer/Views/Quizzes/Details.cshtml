@@ -1,0 +1,16 @@
+@model DataLayer.Entities.Quiz
+@{ var stats = ViewBag.Stats; ViewData["Title"] = "Quiz Preview"; }
+<div class="d-flex justify-content-between align-items-center mb-4"><div><h2>@Model.Title</h2><p class="text-muted mb-0">@Model.Lesson?.Section?.Course?.Title / @Model.Lesson?.Title</p></div><div class="d-flex gap-2"><a asp-action="Edit" asp-route-id="@Model.Id" class="btn btn-outline-primary"><i class="bi bi-pencil"></i> Edit</a><a asp-action="All" class="btn btn-outline-secondary">Back</a></div></div>
+<div class="row g-4">
+    <div class="col-lg-8"><div class="card border-0 shadow-sm"><div class="card-body">
+        <div class="d-flex flex-wrap gap-2 mb-3"><span class="badge @(Model.IsPublished ? "bg-success" : "bg-secondary")">@(Model.IsPublished ? "Published" : "Draft")</span><span class="badge bg-light text-dark border">@Model.PassingScore% pass</span><span class="badge bg-light text-dark border">@Model.Questions.Count questions</span></div>
+        @if(!string.IsNullOrWhiteSpace(Model.Description)){<p class="text-muted">@Model.Description</p>}
+        <div class="d-grid gap-3">
+        @foreach(var q in Model.Questions.OrderBy(q => q.Order))
+        {
+            <section class="border rounded p-3"><div class="d-flex justify-content-between"><h3 class="h6">@q.Order. @q.Text</h3><span class="badge bg-info-subtle text-info border border-info-subtle">@q.Difficulty</span></div>@if(!string.IsNullOrWhiteSpace(q.ImageUrl)){<img src="@q.ImageUrl" class="img-fluid rounded border mb-2" alt="Question image" />}<div class="d-grid gap-2">@foreach(var a in q.Answers.OrderBy(a => a.Order)){<div class="p-2 rounded border @(a.IsCorrect ? "border-success bg-success-subtle" : "")"><strong>@((char)('A' + a.Order - 1)).</strong> @a.Text</div>}</div>@if(!string.IsNullOrWhiteSpace(q.Explanation)){<p class="small text-muted mt-2 mb-0">@q.Explanation</p>}</section>
+        }
+        </div>
+    </div></div></div>
+    <div class="col-lg-4"><div class="card border-0 shadow-sm"><div class="card-body"><h3 class="h6">Stats</h3><dl class="mb-0"><dt>Attempts</dt><dd>@stats?.Attempts</dd><dt>Pass rate</dt><dd>@stats?.PassRate%</dd><dt>Average score</dt><dd>@stats?.AverageScore%</dd><dt>Shuffle questions</dt><dd>@(Model.ShuffleQuestions ? "Yes" : "No")</dd><dt>Shuffle answers</dt><dd>@(Model.ShuffleAnswers ? "Yes" : "No")</dd></dl></div></div></div>
+</div>

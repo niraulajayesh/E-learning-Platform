@@ -1,0 +1,18 @@
+@model DataLayer.Entities.Category
+@{
+    ViewData["Title"] = "Category Details";
+    var activeCourses = Model.Courses.Count(c => c.Status != SharedLayer.Enums.CourseStatus.Archived);
+}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h2>@Model.Name</h2>
+    <div><a href="/Categories/Edit/@Model.Id" class="btn btn-primary">Edit</a> <a href="/Categories" class="btn btn-outline-secondary">Back</a></div>
+</div>
+<div class="card shadow-sm border-0"><div class="card-body">
+    <dl class="row mb-0">
+        <dt class="col-sm-3">Slug</dt><dd class="col-sm-9">@Model.Slug</dd>
+        <dt class="col-sm-3">Status</dt><dd class="col-sm-9"><span class="badge @(Model.IsActive ? "bg-success" : "bg-secondary")">@(Model.IsActive ? "Active" : "Inactive")</span></dd>
+        <dt class="col-sm-3">Active courses</dt><dd class="col-sm-9">@activeCourses</dd>
+        <dt class="col-sm-3">Description</dt><dd class="col-sm-9">@(Model.Description ?? "-")</dd>
+    </dl>
+</div></div>
+

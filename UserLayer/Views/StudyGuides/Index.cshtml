@@ -1,0 +1,159 @@
+﻿@model IEnumerable<DataLayer.Entities.StudyGuide>
+@using System.Net
+@using System.Text.RegularExpressions
+@{
+    var guides = Model.ToList();
+    var categories = ViewBag.Categories as List<DataLayer.Entities.Category> ?? new();
+    int? categoryId = ViewBag.CategoryId as int?;
+    bool bookmarks = ViewBag.BookmarksOnly as bool? ?? false;
+    var searchQuery = ViewBag.SearchQuery as string;
+    var selectedCategory = categories.FirstOrDefault(c => c.Id == categoryId);
+    var bookmarkedGuideIds = (ViewBag.BookmarkedGuideIds as List<Guid> ?? new()).ToHashSet();
+
+    string Plain(string? value) => WebUtility.HtmlDecode(Regex.Replace(value ?? string.Empty, "<.*?>", " ")).Trim();
+    int WordCount(DataLayer.Entities.StudyGuide guide) => Regex.Matches(Plain($"{guide.Summary} {guide.Theory} {guide.Examples} {guide.KeyConcepts} {guide.Tips}"), @"\b\w+\b").Count;
+    int ReadingMinutes(DataLayer.Entities.StudyGuide guide) => Math.Max(2, (int)Math.Ceiling(WordCount(guide) / 180m));
+    string Difficulty(int minutes) => minutes <= 4 ? "Quick Review" : minutes <= 8 ? "Core Study" : "Deep Dive";
+    int Coverage(DataLayer.Entities.StudyGuide guide)
+    {
+        var sections = new[] { guide.Theory, guide.Examples, guide.KeyConcepts, guide.Tips };
+        return sections.Count(s => !string.IsNullOrWhiteSpace(Plain(s))) * 25;
+    }
+    var groupedGuides = guides.GroupBy(g => g.Category?.Name ?? "ASVAB").OrderBy(g => g.First().Category?.DisplayOrder ?? 999);
+}
+
+<section class="premium-hero guide-hub-hero py-5">
+    <div class="container">
+        <div class="row align-items-end gy-4">
+            <div class="col-lg-8">
+                <span class="section-badge"><i class="bi bi-journal-text"></i> ASVAB Study Guides</span>
+                <h1 class="section-title text-white mt-3 mb-2">Study the concepts behind every ASVAB score</h1>
+                <p class="guide-hero-copy">Structured explanations, examples, key concepts, and test-day tips organized by ASVAB subject.</p>
+            </div>
+            <div class="col-lg-4">
+                <div class="guide-hub-stats">
+                    <div><strong>@guides.Count</strong><span>Guides</span></div>
+                    <div><strong>@categories.Count</strong><span>Subjects</span></div>
+                    <div><strong>@guides.Sum(ReadingMinutes)</strong><span>Min Read</span></div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<div class="container py-5">
+    <div class="resource-toolbar mb-4">
+        <form action="/StudyGuides" method="get" class="resource-search">
+            @if (categoryId.HasValue)
+            {
+                <input type="hidden" name="categoryId" value="@categoryId" />
+            }
+            @if (bookmarks)
+            {
+                <input type="hidden" name="bookmarks" value="true" />
+            }
+            <i class="bi bi-search"></i>
+            <input type="search" name="q" value="@searchQuery" placeholder="Search guides, categories, or keywords" />
+            <button type="submit">Search</button>
+        </form>
+        <div class="d-flex gap-2 flex-wrap mt-3">
+            <a class="ux-chip @(categoryId == null && !bookmarks ? "active" : "")" href="/StudyGuides"><i class="bi bi-grid"></i> All</a>
+            <a class="ux-chip @(bookmarks ? "active" : "")" href="/StudyGuides?bookmarks=true@(string.IsNullOrWhiteSpace(searchQuery) ? "" : "&q=" + Uri.EscapeDataString(searchQuery))"><i class="bi bi-bookmark-fill"></i> Bookmarked</a>
+            @foreach (var category in categories)
+            {
+                <a class="ux-chip @(categoryId == category.Id ? "active" : "")" href="/StudyGuides?categoryId=@category.Id@(string.IsNullOrWhiteSpace(searchQuery) ? "" : "&q=" + Uri.EscapeDataString(searchQuery))">@category.Name</a>
+            }
+        </div>
+        <div class="course-meta mt-3">
+            @(selectedCategory == null ? "Showing all ASVAB study guides" : $"Showing {selectedCategory.Name} guides")@(string.IsNullOrWhiteSpace(searchQuery) ? "" : $" matching '{searchQuery}'")
+        </div>
+    </div>
+
+    @if (guides.Any())
+    {
+        <div class="guide-groups">
+            @foreach (var group in groupedGuides)
+            {
+                <section class="guide-category-section">
+                    <div class="guide-category-heading">
+                        <div>
+                            <span class="section-badge"><i class="bi bi-bookmark-check"></i> @group.Key</span>
+                            <h2>@group.Count() guide@(group.Count() == 1 ? "" : "s") for this subject</h2>
+                        </div>
+                    </div>
+
+                    <div class="row g-4">
+                        @foreach (var guide in group.OrderBy(g => g.DisplayOrder).ThenBy(g => g.Title))
+                        {
+                            var minutes = ReadingMinutes(guide);
+                            var coverage = Coverage(guide);
+                            var isBookmarked = bookmarkedGuideIds.Contains(guide.Id);
+                            <div class="col-md-6 col-xl-4">
+                                <article class="guide-card h-100">
+                                    <div class="guide-card-top">
+                                        <span class="course-category">@(guide.Category?.Name ?? "ASVAB")</span>
+                                        <span class="guide-difficulty">@Difficulty(minutes)</span>
+                                    </div>
+                                    <h3>@guide.Title</h3>
+                                    <p>@guide.Summary</p>
+                                    <div class="guide-meta-row">
+                                        <span><i class="bi bi-clock"></i> @minutes min read</span>
+                                        <span><i class="bi @(isBookmarked ? "bi-bookmark-fill" : "bi-bookmark")"></i> @(isBookmarked ? "Bookmarked" : "Saveable")</span>
+                                    </div>
+                                    <div class="guide-progress" aria-label="Guide content coverage @coverage percent">
+                                        <div style="width:@coverage%"></div>
+                                    </div>
+                                    <div class="guide-card-footer">
+                                        <span>@coverage% content coverage</span>
+                                        <a href="/StudyGuides/Read/@guide.Id">Read Guide <i class="bi bi-arrow-right"></i></a>
+                                    </div>
+                                </article>
+                            </div>
+                        }
+                    </div>
+                </section>
+            }
+        </div>
+    }
+    else
+    {
+        <div class="dashboard-card text-center py-5">
+            <i class="bi bi-journal-x" style="font-size:3rem;color:var(--brand);"></i>
+            <h2 style="font-size:1.35rem;font-weight:900;margin-top:1rem;">No study guides found</h2>
+            <p class="text-muted mb-4">Try a different keyword, clear bookmarked-only view, or browse every ASVAB subject.</p>
+            <a href="/StudyGuides" class="btn-primary-custom" style="width:auto;">Show All Guides</a>
+        </div>
+    }
+</div>
+
+@section Styles {
+    <style>
+        .guide-hero-copy { color: #cbd5e1; max-width: 760px; line-height: 1.8; margin: 0; }
+        .guide-hub-stats { display:grid; grid-template-columns:repeat(3,1fr); gap:.75rem; border:1px solid rgba(255,255,255,.18); border-radius:16px; background:rgba(255,255,255,.1); padding:1rem; }
+        .guide-hub-stats div { text-align:center; border-radius:12px; background:rgba(255,255,255,.1); padding:.85rem; }
+        .guide-hub-stats strong { display:block; color:#fff; font-family:'Outfit',sans-serif; font-size:1.55rem; line-height:1; }
+        .guide-hub-stats span { display:block; color:#cbd5e1; font-size:.75rem; font-weight:900; margin-top:.35rem; text-transform:uppercase; }
+        .resource-toolbar { border:1px solid var(--line); border-radius:14px; background:#fff; padding:1rem; box-shadow:0 1px 2px rgba(16,24,40,.03); }
+        .resource-search { display:grid; grid-template-columns:auto 1fr auto; align-items:center; gap:.75rem; border:1px solid var(--line); border-radius:12px; background:#f8fafc; padding:.55rem .65rem; }
+        .resource-search input { border:0; outline:0; background:transparent; min-width:0; color:var(--ink); }
+        .resource-search button { border:0; border-radius:10px; background:linear-gradient(135deg,var(--brand),var(--brand-2)); color:#fff; font-weight:900; padding:.55rem 1rem; }
+        .guide-category-section + .guide-category-section { margin-top:3rem; }
+        .guide-category-heading { display:flex; justify-content:space-between; align-items:end; gap:1rem; margin-bottom:1rem; }
+        .guide-category-heading h2 { font-size:1.25rem; font-weight:900; margin:.75rem 0 0; }
+        .guide-card { display:flex; flex-direction:column; border:1px solid var(--line); border-radius:14px; background:#fff; padding:1.15rem; box-shadow:0 1px 2px rgba(16,24,40,.03); transition:transform .2s ease, box-shadow .2s ease, border-color .2s ease; }
+        .guide-card:hover { transform:translateY(-4px); box-shadow:var(--shadow-md); border-color:rgba(49,87,213,.25); }
+        .guide-card-top { display:flex; justify-content:space-between; align-items:flex-start; gap:.75rem; margin-bottom:1rem; }
+        .guide-difficulty { border-radius:999px; background:#dcfae6; color:#067647; font-size:.72rem; font-weight:900; padding:.32rem .68rem; white-space:nowrap; }
+        .guide-card h3 { font-size:1.08rem; font-weight:900; line-height:1.35; margin:0 0 .55rem; }
+        .guide-card p { color:var(--muted); line-height:1.7; font-size:.92rem; margin:0 0 1rem; }
+        .guide-meta-row { display:flex; flex-wrap:wrap; gap:.85rem; color:var(--muted); font-size:.82rem; font-weight:800; margin-top:auto; }
+        .guide-meta-row span { display:inline-flex; align-items:center; gap:.35rem; }
+        .guide-progress { height:8px; border-radius:999px; background:#e9edf5; overflow:hidden; margin:1rem 0 .75rem; }
+        .guide-progress div { height:100%; border-radius:999px; background:linear-gradient(90deg,var(--brand),var(--brand-2)); }
+        .guide-card-footer { display:flex; justify-content:space-between; align-items:center; gap:1rem; color:var(--muted); font-size:.82rem; font-weight:800; }
+        .guide-card-footer a { color:var(--brand); text-decoration:none; font-weight:900; white-space:nowrap; }
+        @@media (max-width:575.98px) { .guide-hub-stats, .resource-search { grid-template-columns:1fr; } .resource-search i { display:none; } .resource-search button { width:100%; } .guide-card-footer { align-items:flex-start; flex-direction:column; } }
+    </style>
+}
+
+

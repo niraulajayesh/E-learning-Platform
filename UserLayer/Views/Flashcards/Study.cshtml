@@ -1,0 +1,202 @@
+﻿@model DataLayer.Entities.FlashcardSet
+@{
+    var cards = Model.Flashcards.OrderBy(c => c.Order).Select(c => new { id = c.Id.ToString(), front = c.Front, back = c.Back, hint = c.Hint ?? string.Empty }).ToList();
+    var json = System.Text.Json.JsonSerializer.Serialize(cards);
+}
+
+<section class="premium-hero flashcard-study-hero py-4">
+    <div class="container">
+        <a href="/Flashcards" class="study-back"><i class="bi bi-arrow-left"></i> Flashcards</a>
+        <span class="section-badge mt-3"><i class="bi bi-card-text"></i> @Model.Category?.Name</span>
+        <h1 class="section-title text-white mt-3 mb-2">@Model.Title</h1>
+        <p class="study-hero-copy">@Model.Description</p>
+    </div>
+</section>
+
+<div class="container py-5">
+    @if (!cards.Any())
+    {
+        <div class="dashboard-card text-center py-5 mx-auto" style="max-width:760px;">
+            <i class="bi bi-card-text" style="font-size:3rem;color:var(--brand);"></i>
+            <h2 style="font-size:1.35rem;font-weight:900;margin-top:1rem;">This flashcard set is empty</h2>
+            <p class="text-muted mb-4">Choose another set while cards are being added for this ASVAB topic.</p>
+            <a href="/Flashcards" class="btn-primary-custom" style="width:auto;">Back to Flashcards</a>
+        </div>
+    }
+    else
+    {
+        <section class="study-shell mx-auto" data-set-id="@Model.Id">
+            <div class="study-toolbar">
+                <div>
+                    <div class="study-counter" id="counter">Card 1 of @cards.Count</div>
+                    <div class="course-meta">Space: flip · Left/Right: move · K: known · R: review · S: shuffle</div>
+                </div>
+                <button id="restart" class="btn-outline-custom" type="button" style="width:auto;"><i class="bi bi-arrow-counterclockwise"></i> Restart</button>
+            </div>
+
+            <div class="study-progress" aria-label="Study progress"><div id="progressBar"></div></div>
+
+            <div class="study-stats">
+                <div><strong id="knownCount">0</strong><span>Mastered</span></div>
+                <div><strong id="reviewCount">0</strong><span>Needs Review</span></div>
+                <div><strong id="remainingCount">@cards.Count</strong><span>Remaining</span></div>
+            </div>
+
+            <button id="card" class="flashcard-stage" type="button" aria-label="Flip flashcard">
+                <span class="flashcard-inner">
+                    <span class="flashcard-face flashcard-front">
+                        <span class="flashcard-label">Front</span>
+                        <strong id="front"></strong>
+                        <small id="hint"></small>
+                    </span>
+                    <span class="flashcard-face flashcard-back">
+                        <span class="flashcard-label">Back</span>
+                        <strong id="back"></strong>
+                    </span>
+                </span>
+            </button>
+
+            <div class="study-actions">
+                <button id="prev" class="btn btn-outline-secondary" type="button"><i class="bi bi-chevron-left"></i> Previous</button>
+                <button id="flip" class="btn btn-primary" type="button"><i class="bi bi-arrow-repeat"></i> Flip</button>
+                <button id="next" class="btn btn-outline-secondary" type="button">Next <i class="bi bi-chevron-right"></i></button>
+                <button id="shuffle" class="btn btn-outline-primary" type="button"><i class="bi bi-shuffle"></i> Shuffle</button>
+                <button id="known" class="btn btn-outline-success" type="button"><i class="bi bi-check2-circle"></i> Mark Known</button>
+                <button id="review" class="btn btn-outline-warning" type="button"><i class="bi bi-bookmark"></i> Mark Review</button>
+            </div>
+        </section>
+    }
+</div>
+
+@section Styles {
+    <style>
+        .study-back { display:inline-flex; align-items:center; gap:.45rem; color:#cbd5e1; text-decoration:none; font-weight:900; }
+        .study-hero-copy { color:#cbd5e1; max-width:760px; line-height:1.8; margin:0; }
+        .study-shell { max-width:920px; border:1px solid var(--line); border-radius:18px; background:#fff; padding:1.25rem; box-shadow:var(--shadow-sm); }
+        .study-toolbar { display:flex; align-items:flex-start; justify-content:space-between; gap:1rem; flex-wrap:wrap; }
+        .study-counter { font-family:'Outfit',sans-serif; font-size:1.15rem; font-weight:900; color:var(--ink); }
+        .study-progress { height:10px; border-radius:999px; background:#e9edf5; overflow:hidden; margin:1rem 0; }
+        .study-progress div { height:100%; width:0; border-radius:999px; background:linear-gradient(90deg,var(--brand),var(--brand-2)); transition:width .25s ease; }
+        .study-stats { display:grid; grid-template-columns:repeat(3,1fr); gap:.75rem; margin-bottom:1rem; }
+        .study-stats div { border:1px solid var(--line); border-radius:12px; background:#f8fafc; padding:.85rem; text-align:center; }
+        .study-stats strong { display:block; font-family:'Outfit',sans-serif; font-size:1.35rem; line-height:1; color:var(--ink); }
+        .study-stats span { display:block; color:var(--muted); font-size:.75rem; font-weight:900; margin-top:.35rem; text-transform:uppercase; }
+        .flashcard-stage { width:100%; min-height:370px; border:0; background:transparent; perspective:1400px; padding:0; text-align:center; }
+        .flashcard-inner { position:relative; display:block; width:100%; min-height:370px; transform-style:preserve-3d; transition:transform .5s cubic-bezier(.2,.8,.2,1); }
+        .flashcard-stage.flipped .flashcard-inner { transform:rotateY(180deg); }
+        .flashcard-face { position:absolute; inset:0; display:grid; place-items:center; align-content:center; gap:1rem; border:1px solid var(--line); border-radius:18px; padding:2rem; backface-visibility:hidden; box-shadow:0 24px 70px rgba(15,23,42,.14); overflow:auto; }
+        .flashcard-front { background:linear-gradient(135deg,#ffffff,#eef3ff); }
+        .flashcard-back { transform:rotateY(180deg); background:linear-gradient(135deg,#ffffff,#ecfdf3); }
+        .flashcard-label { color:var(--muted); font-size:.78rem; font-weight:900; letter-spacing:.08em; text-transform:uppercase; }
+        .flashcard-face strong { display:block; max-width:760px; color:var(--ink); font-family:'Outfit',sans-serif; font-size:clamp(1.7rem,4vw,3rem); line-height:1.12; overflow-wrap:anywhere; }
+        .flashcard-face small { display:block; max-width:680px; color:var(--muted); font-size:1rem; line-height:1.6; }
+        .study-actions { display:grid; grid-template-columns:repeat(6,auto); justify-content:center; gap:.65rem; margin-top:1.25rem; }
+        .study-actions .btn { font-weight:800; border-radius:999px; }
+        @@media (max-width:767.98px) { .study-actions { grid-template-columns:1fr 1fr; } .study-actions .btn { width:100%; } .flashcard-stage, .flashcard-inner { min-height:330px; } }
+        @@media (max-width:575.98px) { .study-shell { padding:1rem; } .study-stats { grid-template-columns:1fr; } .study-actions { grid-template-columns:1fr; } .flashcard-face { padding:1.2rem; } }
+    </style>
+}
+
+@section Scripts {
+    <script>
+        (() => {
+            const originalCards = @Html.Raw(json);
+            const setId = '@Model.Id';
+            const key = `flashcards:${setId}`;
+            let cards = [...originalCards];
+            let index = 0;
+            let flipped = false;
+            let state = loadState();
+
+            const $ = id => document.getElementById(id);
+            const cardEl = $('card');
+
+            function loadState() {
+                try {
+                    const parsed = JSON.parse(localStorage.getItem(key) || '{"known":[],"review":[]}');
+                    return { known: new Set(parsed.known || []), review: new Set(parsed.review || []) };
+                } catch {
+                    return { known: new Set(), review: new Set() };
+                }
+            }
+
+            function saveState() {
+                localStorage.setItem(key, JSON.stringify({ known: [...state.known], review: [...state.review] }));
+            }
+
+            function render() {
+                if (!cards.length) return;
+                const current = cards[index];
+                $('front').textContent = current.front;
+                $('back').textContent = current.back;
+                $('hint').textContent = current.hint ? `Hint: ${current.hint}` : '';
+                $('counter').textContent = `Card ${index + 1} of ${cards.length}`;
+                cardEl.classList.toggle('flipped', flipped);
+
+                const known = state.known.size;
+                const review = state.review.size;
+                const remaining = Math.max(originalCards.length - known - review, 0);
+                $('knownCount').textContent = known;
+                $('reviewCount').textContent = review;
+                $('remainingCount').textContent = remaining;
+                $('progressBar').style.width = `${Math.round(((index + 1) / cards.length) * 100)}%`;
+            }
+
+            function move(delta) {
+                index = (index + delta + cards.length) % cards.length;
+                flipped = false;
+                render();
+            }
+
+            function mark(type) {
+                const id = cards[index].id;
+                if (type === 'known') {
+                    state.known.add(id);
+                    state.review.delete(id);
+                } else {
+                    state.review.add(id);
+                    state.known.delete(id);
+                }
+                saveState();
+                move(1);
+            }
+
+            function shuffleCards() {
+                cards = [...cards].sort(() => Math.random() - .5);
+                index = 0;
+                flipped = false;
+                render();
+            }
+
+            function restart() {
+                cards = [...originalCards];
+                index = 0;
+                flipped = false;
+                state = { known: new Set(), review: new Set() };
+                saveState();
+                render();
+            }
+
+            cardEl?.addEventListener('click', () => { flipped = !flipped; render(); });
+            $('flip')?.addEventListener('click', () => { flipped = !flipped; render(); });
+            $('prev')?.addEventListener('click', () => move(-1));
+            $('next')?.addEventListener('click', () => move(1));
+            $('shuffle')?.addEventListener('click', shuffleCards);
+            $('known')?.addEventListener('click', () => mark('known'));
+            $('review')?.addEventListener('click', () => mark('review'));
+            $('restart')?.addEventListener('click', restart);
+
+            document.addEventListener('keydown', event => {
+                if (event.target instanceof HTMLInputElement || event.target instanceof HTMLTextAreaElement) return;
+                if (event.code === 'Space') { event.preventDefault(); flipped = !flipped; render(); }
+                if (event.key === 'ArrowLeft') move(-1);
+                if (event.key === 'ArrowRight') move(1);
+                if (event.key.toLowerCase() === 'k') mark('known');
+                if (event.key.toLowerCase() === 'r') mark('review');
+                if (event.key.toLowerCase() === 's') shuffleCards();
+            });
+
+            render();
+        })();
+    </script>
+}

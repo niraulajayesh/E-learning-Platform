@@ -1,0 +1,30 @@
+@using SharedLayer.Enums
+@model DataLayer.Entities.Course
+@{
+    ViewData["Title"] = "Course Details";
+}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <div><h2 class="mb-1">@Model.Title</h2><p class="text-muted mb-0">@Model.Category?.Name</p></div>
+    <div><a asp-action="Edit" asp-route-id="@Model.Id" class="btn btn-primary">Edit</a> <a asp-action="Index" class="btn btn-outline-secondary">Back</a></div>
+</div>
+<div class="row g-4">
+    <div class="col-lg-8"><div class="card shadow-sm border-0"><div class="card-body">
+        <div class="d-flex gap-2 mb-3"><span class="badge @(Model.Status == CourseStatus.Published ? "bg-success" : "bg-warning text-dark")">@Model.Status</span>@if(Model.IsFeatured){<span class="badge bg-info text-dark">Featured</span>}</div>
+        <p class="lead">@Model.ShortDescription</p>
+        <p>@Model.Description</p>
+        @if (!string.IsNullOrWhiteSpace(Model.PreviewVideoUrl))
+        {
+            <div class="ratio ratio-16x9 mt-3"><iframe src="@Model.PreviewVideoUrl" title="Course preview" allowfullscreen></iframe></div>
+        }
+    </div></div></div>
+    <div class="col-lg-4"><div class="card shadow-sm border-0"><div class="card-body">
+        @if(!string.IsNullOrWhiteSpace(Model.ThumbnailUrl)){<img src="@Model.ThumbnailUrl" class="img-fluid rounded mb-3" alt="" />}
+        <dl class="row mb-0">
+            <dt class="col-6">Instructor</dt><dd class="col-6">@Model.Instructor?.FirstName @Model.Instructor?.LastName</dd>
+            <dt class="col-6">Price</dt><dd class="col-6">$@Model.Price</dd>
+            <dt class="col-6">Lessons</dt><dd class="col-6">@Model.TotalLessons</dd>
+            <dt class="col-6">Enrollments</dt><dd class="col-6">@Model.TotalEnrollments</dd>
+            <dt class="col-6">Rating</dt><dd class="col-6">@Model.AverageRating</dd>
+        </dl>
+    </div></div></div>
+</div>

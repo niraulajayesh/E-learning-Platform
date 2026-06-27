@@ -1,0 +1,151 @@
+﻿@model IEnumerable<DataLayer.Entities.PracticeTest>
+@{
+    var tests = Model.ToList();
+    var categories = ViewBag.Categories as List<DataLayer.Entities.Category> ?? new();
+    int? categoryId = ViewBag.CategoryId as int?;
+    var selectedCategory = categories.FirstOrDefault(c => c.Id == categoryId);
+    var totalQuestions = tests.Sum(t => t.Questions?.Count ?? 0);
+    var timedCount = tests.Count(t => t.IsTimed);
+}
+
+<section class="premium-hero practice-hero py-5">
+    <div class="container">
+        <div class="row align-items-end gy-4">
+            <div class="col-lg-8">
+                <span class="section-badge"><i class="bi bi-stopwatch"></i> ASVAB Practice Center</span>
+                <h1 class="section-title text-white mt-3 mb-2">Start a focused ASVAB practice test</h1>
+                <p class="practice-hero-copy">Choose a subject area, take timed or untimed practice, and use explanations to decide what to review next.</p>
+            </div>
+            <div class="col-lg-4">
+                <div class="practice-summary-panel">
+                    <div>
+                        <span class="practice-summary-value">@tests.Count</span>
+                        <span class="practice-summary-label">Tests</span>
+                    </div>
+                    <div>
+                        <span class="practice-summary-value">@totalQuestions</span>
+                        <span class="practice-summary-label">Questions</span>
+                    </div>
+                    <div>
+                        <span class="practice-summary-value">@timedCount</span>
+                        <span class="practice-summary-label">Timed</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<div class="container py-5">
+    <div class="market-toolbar mb-4">
+        <div class="d-flex justify-content-between align-items-start gap-3 flex-wrap">
+            <div>
+                <div class="fw-bold">Practice by ASVAB subject</div>
+                <div class="course-meta mt-1">@(selectedCategory == null ? "Showing every published practice test" : $"Filtered to {selectedCategory.Name}")</div>
+            </div>
+            <a href="/ExamSimulator" class="btn-outline-custom" style="width:auto;"><i class="bi bi-clipboard2-pulse"></i> Full Mock Exam</a>
+        </div>
+        <div class="d-flex gap-2 flex-wrap mt-3">
+            <a class="ux-chip @(categoryId == null ? "active" : "")" href="/PracticeTests"><i class="bi bi-grid"></i> All</a>
+            @foreach (var c in categories)
+            {
+                <a class="ux-chip @(categoryId == c.Id ? "active" : "")" href="/PracticeTests?categoryId=@c.Id">@c.Name</a>
+            }
+        </div>
+    </div>
+
+    @if (tests.Any())
+    {
+        <div class="row g-4">
+            @foreach (var test in tests)
+            {
+                var questionCount = test.Questions?.Count ?? 0;
+                <div class="col-md-6 col-xl-4">
+                    <article class="course-card practice-test-card h-100">
+                        <div class="course-card-body d-flex flex-column h-100">
+                            <div class="d-flex justify-content-between align-items-start gap-2 mb-3">
+                                <span class="course-category">@(test.Category?.Name ?? "ASVAB")</span>
+                                <span class="practice-mode @(test.IsTimed ? "timed" : "untimed")">
+                                    <i class="bi @(test.IsTimed ? "bi-stopwatch" : "bi-infinity")"></i>
+                                    @(test.IsTimed ? "Timed" : "Untimed")
+                                </span>
+                            </div>
+
+                            <h2 class="practice-test-title">@test.Title</h2>
+                            <p class="course-description mb-3">@test.Description</p>
+
+                            <div class="practice-facts mt-auto">
+                                <span><i class="bi bi-question-circle"></i> @questionCount question@(questionCount == 1 ? "" : "s")</span>
+                                <span><i class="bi bi-clock"></i> @(test.IsTimed ? $"{test.TimeLimitMinutes} min" : "Self paced")</span>
+                                <span><i class="bi bi-card-checklist"></i> Instant score</span>
+                            </div>
+
+                            <a href="/PracticeTests/Take/@test.Id" class="btn-primary-custom mt-4" style="width:100%;border:none;">
+                                Start Test <i class="bi bi-arrow-right-circle"></i>
+                            </a>
+                        </div>
+                    </article>
+                </div>
+            }
+        </div>
+    }
+    else
+    {
+        <div class="dashboard-card text-center py-5">
+            <i class="bi bi-clipboard-x" style="font-size:3rem;color:var(--brand);"></i>
+            <h2 style="font-size:1.35rem;font-weight:900;margin-top:1rem;">No practice tests found</h2>
+            <p class="text-muted mb-4">Try another ASVAB subject or return to the full practice center.</p>
+            <a href="/PracticeTests" class="btn-primary-custom" style="width:auto;">Show All Tests</a>
+        </div>
+    }
+</div>
+
+@section Styles {
+    <style>
+        .practice-hero-copy { color: #cbd5e1; max-width: 760px; line-height: 1.8; margin: 0; }
+        .practice-summary-panel {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: .75rem;
+            border: 1px solid rgba(255,255,255,.18);
+            border-radius: 16px;
+            background: rgba(255,255,255,.1);
+            padding: 1rem;
+        }
+        .practice-summary-panel > div {
+            border-radius: 12px;
+            background: rgba(255,255,255,.1);
+            padding: .85rem;
+            text-align: center;
+        }
+        .practice-summary-value { display: block; color: #fff; font-family: 'Outfit', sans-serif; font-size: 1.55rem; font-weight: 900; line-height: 1; }
+        .practice-summary-label { display: block; color: #cbd5e1; font-size: .75rem; font-weight: 800; margin-top: .35rem; text-transform: uppercase; }
+        .practice-test-card { min-height: 100%; }
+        .practice-test-title { color: var(--ink); font-size: 1.12rem; font-weight: 900; line-height: 1.35; margin-bottom: .65rem; }
+        .practice-mode {
+            display: inline-flex;
+            align-items: center;
+            gap: .35rem;
+            border-radius: 999px;
+            padding: .34rem .68rem;
+            font-size: .76rem;
+            font-weight: 900;
+            white-space: nowrap;
+        }
+        .practice-mode.timed { color: #067647; background: #dcfae6; }
+        .practice-mode.untimed { color: #475467; background: #f2f4f7; }
+        .practice-facts {
+            display: grid;
+            gap: .55rem;
+            color: var(--muted);
+            font-size: .86rem;
+            font-weight: 700;
+        }
+        .practice-facts span { display: inline-flex; align-items: center; gap: .45rem; }
+        .practice-facts i { color: var(--brand); }
+
+        @@media (max-width: 575.98px) {
+            .practice-summary-panel { grid-template-columns: 1fr; }
+        }
+    </style>
+}

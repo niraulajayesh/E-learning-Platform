@@ -1,0 +1,29 @@
+# Visual Studio
+.vs/
+*.user
+*.suo
+
+# Build folders
+bin/
+obj/
+
+# Publish
+publish/
+
+# Logs
+*.log
+*.err.log
+*.out.log
+*.pid
+*.binlog
+
+# Build probes
+.buildprobe*/
+
+# Database
+*.mdf
+*.ldf
+*.ndf
+
+# Temporary
+*.tmp

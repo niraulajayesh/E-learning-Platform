@@ -1,0 +1,6 @@
+﻿@{
+    var sectionMinutes = ViewBag.SectionMinutes as Dictionary<string,int> ?? new();
+    var totalMinutes = (int)(ViewBag.TotalMinutes ?? 0);
+}
+<section class="premium-hero py-5"><div class="container"><span class="section-badge"><i class="bi bi-clipboard2-pulse"></i> Full ASVAB Exam Simulator</span><h1 class="section-title text-white mt-3 mb-2">Full-Length ASVAB Mock Exam</h1><p style="color:#cbd5e1;max-width:760px;">Mixed-category exam with timed sections, final score, category breakdown, and a summary report.</p><a href="/ExamSimulator/Start" class="btn-primary-custom mt-3" style="width:auto;">Start Mock Exam</a></div></section>
+<div class="container py-5"><div class="row g-4"><div class="col-lg-8"><div class="dashboard-card"><h2>Exam Structure</h2><p class="text-muted">This simulator pulls from the ASVAB question bank and covers all nine categories in one full mock exam.</p><div class="row g-3">@foreach(var item in sectionMinutes){<div class="col-md-4"><div class="border rounded p-3 h-100"><strong>@item.Key</strong><div class="text-muted small">@item.Value minutes</div></div></div>}</div></div></div><div class="col-lg-4"><div class="dashboard-card"><h2>@totalMinutes minutes</h2><p class="text-muted mb-0">Total timed simulation. Your final report includes overall score and category-level performance.</p></div></div></div></div>

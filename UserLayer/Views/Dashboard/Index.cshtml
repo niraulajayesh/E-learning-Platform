@@ -1,0 +1,276 @@
+@{
+    var recentEnrollments = ViewBag.RecentEnrollments as List<DataLayer.Entities.Enrollment> ?? new();
+    var recentQuizAttempts = ViewBag.RecentQuizAttempts as List<DataLayer.Entities.QuizAttempt> ?? new();
+    var recentCertificates = ViewBag.RecentCertificates as List<DataLayer.Entities.Certificate> ?? new();
+    var userName = User.Identity?.Name?.Split(' ')[0] ?? "Student";
+    string activeCourses = Convert.ToString(ViewBag.ActiveCourses) ?? "0";
+    string completedCourses = Convert.ToString(ViewBag.CompletedCourses) ?? "0";
+    string totalCertificates = Convert.ToString(ViewBag.TotalCertificates) ?? "0";
+    var averageProgress = recentEnrollments.Any() ? recentEnrollments.Average(e => e.CompletionPercentage) : 0;
+    var asvabProgress = ViewBag.AsvabProgress as List<UserLayer.Controllers.DashboardController.AsvabProgressMetric> ?? new();
+    var weakAreas = ViewBag.WeakAreas as List<UserLayer.Controllers.DashboardController.WeakAreaRecommendation> ?? new();
+    var progressLabelsJson = System.Text.Json.JsonSerializer.Serialize(asvabProgress.Select(p => p.Code));
+    var progressValuesJson = System.Text.Json.JsonSerializer.Serialize(asvabProgress.Select(p => p.ProgressPercent));
+    var recentScoreValuesJson = System.Text.Json.JsonSerializer.Serialize(asvabProgress.Select(p => p.AverageRecentScore));
+}
+
+<section class="premium-hero" style="padding:3.2rem 0;">
+    <div class="container">
+        <div class="d-flex align-items-end justify-content-between flex-wrap gap-4">
+            <div>
+                <span class="section-badge"><i class="bi bi-grid-1x2"></i> Student dashboard</span>
+                <h1 class="section-title text-white mt-3 mb-2">Welcome back, @userName</h1>
+                <p style="color:#cbd5e1;margin:0;max-width:620px;line-height:1.75;">Resume courses, review quiz attempts, and keep certificates close at hand.</p>
+            </div>
+            <a href="/Courses" class="btn-primary-custom"><i class="bi bi-compass"></i> Find New Courses</a>
+        </div>
+    </div>
+</section>
+
+<div class="container py-5">
+    <div class="row row-cols-1 row-cols-sm-2 row-cols-xl-4 g-4 mb-4">
+        @foreach (var metric in new[] { new { Icon = "bi-play-circle-fill", Label = "Active Courses", Value = activeCourses, Bg = "linear-gradient(135deg,#3157d5,#17a2a4)" }, new { Icon = "bi-check-circle-fill", Label = "Completed", Value = completedCourses, Bg = "linear-gradient(135deg,#067647,#16a34a)" }, new { Icon = "bi-award-fill", Label = "Certificates", Value = totalCertificates, Bg = "linear-gradient(135deg,#b54708,#f59e0b)" }, new { Icon = "bi-graph-up-arrow", Label = "Recent Progress", Value = averageProgress.ToString("0") + "%", Bg = "linear-gradient(135deg,#0f766e,#0891b2)" } })
+        {
+            <div class="col"><div class="metric-card" style="background:@metric.Bg;"><i class="bi @metric.Icon" style="font-size:1.8rem;opacity:.9;"></i><div style="font-family:'Outfit',sans-serif;font-weight:900;font-size:2.1rem;margin:.45rem 0 .2rem;">@metric.Value</div><div style="font-size:.88rem;opacity:.9;font-weight:700;">@metric.Label</div></div></div>
+        }
+    </div>
+    @{
+        var continueEnrollment = recentEnrollments.FirstOrDefault(e => e.CompletionPercentage < 100) ?? recentEnrollments.FirstOrDefault();
+        var continueCourse = continueEnrollment?.Course;
+        var priorityWeakArea = weakAreas.FirstOrDefault();
+        var recommendedProgress = asvabProgress.OrderBy(p => p.ProgressPercent).FirstOrDefault();
+        var todaysTasks = new[]
+        {
+            new { Icon = "bi-play-circle", Label = continueCourse != null ? $"Continue {continueCourse.Title}" : "Choose your first ASVAB course", Href = continueCourse != null ? $"/Courses/Details/{continueCourse.Id}" : "/Courses" },
+            new { Icon = "bi-stopwatch", Label = priorityWeakArea != null ? $"Practice {priorityWeakArea.Code}" : "Take a diagnostic practice test", Href = "/PracticeTests" },
+            new { Icon = "bi-stack", Label = "Review one flashcard set", Href = "/Flashcards" }
+        };
+    }
+
+    <section class="row g-4 mb-4" aria-label="Today learning plan">
+        <div class="col-xl-5">
+            <div class="dashboard-card h-100">
+                <div class="d-flex justify-content-between align-items-start gap-3 mb-3">
+                    <div>
+                        <span class="section-badge"><i class="bi bi-play-circle"></i> Continue Learning</span>
+                        <h2 style="font-size:1.35rem;font-weight:900;margin:.8rem 0 .35rem;">@(continueCourse?.Title ?? "Start your ASVAB path")</h2>
+                        <p class="text-muted mb-0">@(continueEnrollment != null ? $"{continueEnrollment.CompletionPercentage:0}% complete. Keep the streak moving with the next lesson or review." : "Pick a focused course and your dashboard will track every step.")</p>
+                    </div>
+                    <span class="badge rounded-pill" style="background:#eef3ff;color:var(--brand);font-weight:900;">Today</span>
+                </div>
+                @if (continueEnrollment != null)
+                {
+                    <div class="progress-custom mb-3"><div class="progress-bar" style="width:@continueEnrollment.CompletionPercentage%"></div></div>
+                }
+                <a href="@(continueCourse != null ? $"/Courses/Details/{continueCourse.Id}" : "/Courses")" class="btn-primary-custom" style="width:auto;">@(continueCourse != null ? "Resume Course" : "Browse Courses") <i class="bi bi-arrow-right"></i></a>
+            </div>
+        </div>
+        <div class="col-xl-3">
+            <div class="dashboard-card h-100">
+                <span class="section-badge"><i class="bi bi-bullseye"></i> Weak Areas</span>
+                @if (priorityWeakArea != null)
+                {
+                    <h2 style="font-size:1.25rem;font-weight:900;margin:.8rem 0 .35rem;">@priorityWeakArea.Category</h2>
+                    <p class="text-muted mb-3">@priorityWeakArea.Reason</p>
+                    <div class="d-flex justify-content-between small mb-2"><span>Recent average</span><strong>@priorityWeakArea.AverageScore.ToString("0.#")%</strong></div>
+                    <div class="progress-custom"><div class="progress-bar" style="width:@priorityWeakArea.AverageScore%"></div></div>
+                }
+                else
+                {
+                    <h2 style="font-size:1.2rem;font-weight:900;margin:.8rem 0 .35rem;">No weak signals yet</h2>
+                    <p class="text-muted mb-0">Complete quizzes or practice tests to unlock recommendations.</p>
+                }
+            </div>
+        </div>
+        <div class="col-xl-4">
+            <div class="dashboard-card h-100">
+                <div class="d-flex justify-content-between align-items-start gap-3 mb-3">
+                    <div><span class="section-badge"><i class="bi bi-calendar-check"></i> Today's Tasks</span><h2 style="font-size:1.25rem;font-weight:900;margin:.8rem 0 0;">Recommended Study</h2></div>
+                    <a href="/StudyPlanner" class="course-meta text-decoration-none fw-bold">Planner</a>
+                </div>
+                <div class="d-grid gap-2">
+                    @foreach (var task in todaysTasks)
+                    {
+                        <a href="@task.Href" class="lesson-nav-card text-decoration-none d-flex align-items-center gap-3" style="color:var(--ink);padding:.85rem;"><i class="bi @task.Icon" style="color:var(--brand);"></i><span style="font-weight:900;line-height:1.35;">@task.Label</span><i class="bi bi-chevron-right ms-auto text-muted"></i></a>
+                    }
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <section class="dashboard-card mb-4">
+        <div class="d-flex justify-content-between align-items-start flex-wrap gap-3">
+            <div>
+                <span class="section-badge"><i class="bi bi-stopwatch"></i> Upcoming Practice Test</span>
+                <h2 style="font-size:1.25rem;font-weight:900;margin:.8rem 0 .35rem;">@(recommendedProgress != null ? $"Practice {recommendedProgress.Category}" : "Take a section practice test")</h2>
+                <p class="text-muted mb-0">@(recommendedProgress != null ? $"This is your lowest current progress area at {recommendedProgress.ProgressPercent:0.#}%." : "Start with any ASVAB category to generate score signals.")</p>
+            </div>
+            <a href="/PracticeTests" class="btn-outline-custom" style="width:auto;"><i class="bi bi-clipboard-check"></i> Open Practice Tests</a>
+        </div>
+    </section>
+
+
+    <section class="dashboard-card mb-4">
+        <div class="d-flex justify-content-between align-items-start flex-wrap gap-3 mb-4">
+            <div>
+                <h2 style="font-weight:900;font-size:1.25rem;margin:0;">ASVAB Progress Analytics</h2>
+                <p class="text-muted mb-0 mt-1">Track category completion and recent practice scores across all nine ASVAB areas.</p>
+            </div>
+            <a href="/PracticeTests" class="btn-outline-custom" style="width:auto;"><i class="bi bi-clipboard-check"></i> Practice Tests</a>
+        </div>
+        <div class="row g-4 mb-4">
+            <div class="col-lg-7">
+                <div style="border:1px solid var(--line);border-radius:14px;padding:1rem;background:#fff;min-height:300px;">
+                    <div class="fw-bold mb-3">Overall progress by category</div>
+                    <canvas id="asvabProgressChart" height="140"></canvas>
+                </div>
+            </div>
+            <div class="col-lg-5">
+                <div style="border:1px solid var(--line);border-radius:14px;padding:1rem;background:#fff;min-height:300px;">
+                    <div class="fw-bold mb-3">Recent score average</div>
+                    <canvas id="recentScoresChart" height="160"></canvas>
+                </div>
+            </div>
+        </div>
+        <div class="row row-cols-1 row-cols-md-2 row-cols-xl-3 g-3">
+            @foreach (var item in asvabProgress)
+            {
+                <div class="col">
+                    <div style="border:1px solid var(--line);border-radius:14px;padding:1rem;background:#fff;height:100%;">
+                        <div class="d-flex justify-content-between align-items-start gap-3 mb-2">
+                            <div>
+                                <span class="badge" style="background:#eef3ff;color:var(--brand);font-weight:900;">@item.Code</span>
+                                <div style="font-weight:900;margin-top:.45rem;line-height:1.25;">@item.Category</div>
+                            </div>
+                            <div style="font-weight:900;color:var(--brand);font-size:1.25rem;">@item.ProgressPercent.ToString("0.#")%</div>
+                        </div>
+                        <div class="progress-custom mb-3"><div class="progress-bar" style="width:@item.ProgressPercent%"></div></div>
+                        <div class="d-flex justify-content-between small mb-2"><span class="text-muted">Course completion</span><strong>@item.CompletionPercent.ToString("0.#")%</strong></div>
+                        <div class="d-flex justify-content-between small mb-3"><span class="text-muted">Recent score avg</span><strong>@item.AverageRecentScore.ToString("0.#")%</strong></div>
+                        <div class="d-flex flex-wrap gap-2">
+                            @if (item.RecentScores.Any())
+                            {
+                                foreach (var score in item.RecentScores)
+                                {
+                                    <span class="badge bg-light text-dark border">@score.ToString("0.#")%</span>
+                                }
+                            }
+                            else
+                            {
+                                <span class="text-muted small">No practice attempts yet</span>
+                            }
+                        </div>
+                    </div>
+                </div>
+            }
+        </div>
+    </section>
+    <div class="row g-4">
+        <div class="col-lg-8">
+            <section class="dashboard-card">
+                <div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-2"><h2 style="font-weight:900;font-size:1.2rem;margin:0;">Recent enrollments</h2><a href="/MyCourses" style="color:var(--brand);font-size:.9rem;text-decoration:none;font-weight:900;">View all <i class="bi bi-arrow-right"></i></a></div>
+                @if (recentEnrollments.Any())
+                {
+                    <div class="d-flex flex-column gap-3">
+                        @foreach (var enrollment in recentEnrollments)
+                        {
+                            var course = enrollment.Course;
+                            <div class="d-flex gap-3 align-items-center" style="border:1px solid var(--line);border-radius:14px;padding:1rem;background:#fff;">
+                                <div style="width:58px;height:58px;border-radius:14px;background:linear-gradient(135deg,var(--brand),var(--brand-2));display:grid;place-items:center;color:#fff;font-size:1.35rem;flex-shrink:0;"><i class="bi bi-book"></i></div>
+                                <div style="flex:1;min-width:0;">
+                                    <div style="font-weight:900;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">@(course?.Title ?? "Course")</div>
+                                    <div class="course-meta mt-1">Enrolled @enrollment.EnrolledAt.ToString("MMM dd, yyyy")</div>
+                                    <div class="progress-custom mt-2"><div class="progress-bar" style="width:@enrollment.CompletionPercentage%"></div></div>
+                                </div>
+                                <div style="text-align:right;flex-shrink:0;"><span style="font-weight:900;color:var(--brand);">@enrollment.CompletionPercentage.ToString("0")%</span><br /><span class="badge @(enrollment.Status == SharedLayer.Enums.EnrollmentStatus.Completed ? "bg-success" : "bg-secondary") mt-1">@enrollment.Status</span></div>
+                            </div>
+                        }
+                    </div>
+                }
+                else
+                {
+                    <div class="text-center py-5"><i class="bi bi-collection" style="font-size:3rem;color:var(--brand);"></i><h3 style="font-size:1.25rem;font-weight:900;margin-top:1rem;">No enrollments yet</h3><p class="text-muted">Choose a course to begin your dashboard activity.</p><a href="/Courses" class="btn-primary-custom">Browse Courses</a></div>
+                }
+            </section>
+
+            <section class="dashboard-card mt-4">
+                <div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-2"><h2 style="font-weight:900;font-size:1.2rem;margin:0;">Recent quiz results</h2><span class="course-meta" style="font-weight:900;">Attempts</span></div>
+                @if (recentQuizAttempts.Any())
+                {
+                    <div class="d-flex flex-column gap-3">
+                        @foreach (var attempt in recentQuizAttempts)
+                        {
+                            var quiz = attempt.Quiz; var course = quiz?.Lesson?.Section?.Course;
+                            <a href="/Quizzes/Result/@attempt.Id" class="text-decoration-none" style="border:1px solid var(--line);border-radius:14px;padding:1rem;display:flex;justify-content:space-between;gap:1rem;color:var(--ink);background:#fff;"><div style="min-width:0;"><div style="font-weight:900;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">@(quiz?.Title ?? "Quiz")</div><div class="course-meta mt-1">@(course?.Title ?? "Course") · Attempt @attempt.AttemptNumber</div></div><div style="text-align:right;flex-shrink:0;"><strong style="color:@(attempt.IsPassed ? "var(--success)" : "var(--danger)");">@attempt.Score.ToString("0")%</strong><br /><span class="badge @(attempt.IsPassed ? "bg-success" : "bg-danger")">@(attempt.IsPassed ? "Passed" : "Failed")</span></div></a>
+                        }
+                    </div>
+                }
+                else
+                {
+                    <p class="text-muted mb-0">Quiz results will appear here after you submit an attempt.</p>
+                }
+            </section>
+        </div>
+
+        <div class="col-lg-4">
+            <section class="dashboard-card sticky-top" style="top:94px;">
+                <h2 style="font-weight:900;font-size:1.15rem;margin-bottom:1rem;">Quick access</h2>
+                <div class="d-flex flex-column gap-2">
+                    @foreach (var link in new[] { new { Href = "/MyCourses", Icon = "bi-play-circle", Label = "My Courses", Color = "#3157d5" }, new { Href = "/Wishlist", Icon = "bi-heart", Label = "Wishlist", Color = "#e11d48" }, new { Href = "/StudyPlanner", Icon = "bi-calendar-check", Label = "Study Planner", Color = "#0f766e" }, new { Href = "/Certificates", Icon = "bi-award", Label = "Certificates", Color = "#f59e0b" }, new { Href = "/Profile", Icon = "bi-person-circle", Label = "Profile", Color = "#0891b2" }, new { Href = "/Courses", Icon = "bi-compass", Label = "Explore Courses", Color = "#16a34a" } })
+                    {
+                        <a href="@link.Href" style="border:1px solid var(--line);border-radius:12px;padding:.9rem 1rem;text-decoration:none;display:flex;align-items:center;gap:.85rem;color:var(--ink);font-weight:900;background:#fff;"><i class="bi @link.Icon" style="font-size:1.15rem;color:@link.Color;"></i><span>@link.Label</span><i class="bi bi-chevron-right ms-auto" style="color:#98a2b3;font-size:.75rem;"></i></a>
+                    }
+                </div>
+            </section>
+
+            <section class="dashboard-card mt-4">
+                <h2 style="font-weight:900;font-size:1.1rem;margin-bottom:1rem;">Certificate history</h2>
+                @if (recentCertificates.Any())
+                {
+                    <div class="d-flex flex-column gap-3">@foreach (var cert in recentCertificates) { <a href="/Certificates/Details/@cert.Id" class="text-decoration-none" style="border:1px solid var(--line);border-radius:14px;padding:1rem;display:flex;justify-content:space-between;gap:1rem;color:var(--ink);background:#fff;"><div style="min-width:0;"><div style="font-weight:900;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">@cert.Course?.Title</div><div class="course-meta mt-1">Issued @cert.IssuedAt.ToString("MMM dd, yyyy")</div></div><i class="bi bi-award" style="font-size:1.6rem;color:var(--brand-3);"></i></a> }</div>
+                }
+                else
+                {
+                    <p class="text-muted mb-0">Earned certificates will appear here.</p>
+                }
+            </section>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script>
+        (() => {
+            const labels = @Html.Raw(progressLabelsJson);
+            const progressValues = @Html.Raw(progressValuesJson);
+            const recentScoreValues = @Html.Raw(recentScoreValuesJson);
+            const chartOptions = {
+                responsive: true,
+                maintainAspectRatio: true,
+                scales: { y: { beginAtZero: true, max: 100, ticks: { callback: value => value + '%' } } },
+                plugins: { legend: { display: false }, tooltip: { callbacks: { label: context => context.raw + '%' } } }
+            };
+            const progressCanvas = document.getElementById('asvabProgressChart');
+            const scoreCanvas = document.getElementById('recentScoresChart');
+            if (progressCanvas) {
+                new Chart(progressCanvas, {
+                    type: 'bar',
+                    data: { labels, datasets: [{ data: progressValues, backgroundColor: '#3157d5', borderRadius: 8, maxBarThickness: 34 }] },
+                    options: chartOptions
+                });
+            }
+            if (scoreCanvas) {
+                new Chart(scoreCanvas, {
+                    type: 'line',
+                    data: { labels, datasets: [{ data: recentScoreValues, borderColor: '#0f766e', backgroundColor: 'rgba(15,118,110,.12)', fill: true, tension: .35, pointRadius: 4, pointBackgroundColor: '#0f766e' }] },
+                    options: chartOptions
+                });
+            }
+        })();
+    </script>
+}
+
+
+
+

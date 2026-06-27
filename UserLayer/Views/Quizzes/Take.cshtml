@@ -1,0 +1,101 @@
+@model UserLayer.Models.QuizTakeViewModel
+@{
+    var quiz = Model.Quiz;
+    var course = quiz.Lesson.Section.Course;
+    var questions = quiz.ShuffleQuestions ? quiz.Questions.OrderBy(_ => Guid.NewGuid()).ToList() : quiz.Questions.OrderBy(q => q.Order).ToList();
+}
+
+<div class="hero-dark" style="padding:2.5rem 0;">
+    <div class="container">
+        <span class="section-badge">Quiz</span>
+        <h1 class="section-title text-white mt-2 mb-2">@quiz.Title</h1>
+        <p style="color:#c4b5fd;margin:0;">@course.Title · Passing score @quiz.PassingScore%</p>
+    </div>
+</div>
+
+<div class="container py-5">
+    <div class="row g-4">
+        <main class="col-lg-8">
+            <section class="dashboard-card mb-4">
+                @if (!string.IsNullOrWhiteSpace(quiz.Description))
+                {
+                    <p class="text-muted" style="line-height:1.7;">@quiz.Description</p>
+                }
+                <div class="d-flex gap-3 flex-wrap" style="font-size:0.9rem;color:#6b7280;">
+                    <span><i class="bi bi-list-check me-1"></i>@quiz.Questions.Count questions</span>
+                    <span><i class="bi bi-bullseye me-1"></i>@quiz.PassingScore% to pass</span>
+                    <span><i class="bi bi-arrow-repeat me-1"></i>@(quiz.MaxAttempts == 0 ? "Unlimited attempts" : $"{quiz.MaxAttempts} attempts")</span>
+                    @if (quiz.TimeLimitMinutes.HasValue)
+                    {
+                        <span><i class="bi bi-clock me-1"></i>@quiz.TimeLimitMinutes min</span>
+                    }
+                </div>
+            </section>
+
+            @if (!Model.CanAttempt)
+            {
+                <div class="dashboard-card text-center py-5">
+                    <i class="bi bi-lock" style="font-size:3rem;color:#d8b4fe;"></i>
+                    <h2 style="font-weight:800;font-size:1.3rem;margin-top:1rem;">Quiz locked</h2>
+                    <p class="text-muted">@Model.LockReason</p>
+                    <a href="/Lessons/Watch/@quiz.LessonId" class="btn-primary-custom">Back to Lesson</a>
+                </div>
+            }
+            else
+            {
+                <form method="post" action="/Quizzes/Submit">
+                    @Html.AntiForgeryToken()
+                    <input type="hidden" name="quizId" value="@quiz.Id" />
+                    <input type="hidden" name="timeTakenSeconds" value="0" />
+                    <div class="d-grid gap-4">
+                        @for (var i = 0; i < questions.Count; i++)
+                        {
+                            var question = questions[i];
+                            <section class="dashboard-card">
+                                <div class="d-flex justify-content-between gap-3 mb-3">
+                                    <h2 style="font-weight:800;font-size:1.05rem;margin:0;">@(i + 1). @question.Text</h2>
+                                    <span class="badge" style="background:#ede9fe;color:#6d28d9;height:max-content;">@question.Points pt</span>
+                                </div>
+                                <div class="d-grid gap-2">
+                                    @foreach (var answer in (quiz.ShuffleAnswers ? question.Answers.OrderBy(_ => Guid.NewGuid()) : question.Answers.OrderBy(a => a.Order)))
+                                    {
+                                        <label style="display:flex;gap:0.75rem;align-items:flex-start;padding:0.85rem;border:1px solid #e5e7eb;border-radius:10px;cursor:pointer;">
+                                            <input type="radio" name="answers[@question.Id]" value="@answer.Id" required style="margin-top:0.25rem;" />
+                                            <span>@answer.Text</span>
+                                        </label>
+                                    }
+                                </div>
+                            </section>
+                        }
+                    </div>
+                    <div class="d-flex justify-content-between align-items-center mt-4 flex-wrap gap-3">
+                        <a href="/Lessons/Watch/@quiz.LessonId" class="btn-outline-custom">Back to Lesson</a>
+                        <button type="submit" class="btn-primary-custom" style="border:0;">Submit Quiz</button>
+                    </div>
+                </form>
+            }
+        </main>
+        <aside class="col-lg-4">
+            <section class="dashboard-card">
+                <h2 style="font-weight:800;font-size:1.1rem;margin-bottom:1rem;">Attempt history</h2>
+                @if (Model.Attempts.Any())
+                {
+                    <div class="d-grid gap-2">
+                        @foreach (var attempt in Model.Attempts)
+                        {
+                            <a href="/Quizzes/Result/@attempt.Id" class="text-decoration-none" style="display:flex;justify-content:space-between;gap:1rem;padding:0.85rem;border:1px solid #f3f4f6;border-radius:10px;color:#111827;">
+                                <span>Attempt @attempt.AttemptNumber<br /><small class="text-muted">@attempt.AttemptedAt.ToLocalTime().ToString("MMM dd, h:mm tt")</small></span>
+                                <strong style="color:@(attempt.IsPassed ? "#16a34a" : "#dc2626");">@attempt.Score.ToString("0")%</strong>
+                            </a>
+                        }
+                    </div>
+                }
+                else
+                {
+                    <p class="text-muted mb-0">No attempts yet.</p>
+                }
+            </section>
+        </aside>
+    </div>
+</div>
+

@@ -1,0 +1,40 @@
+@model IEnumerable<DataLayer.Entities.Lesson>
+@{
+    ViewData["Title"] = "Lessons";
+    var courseId = (Guid)ViewBag.CourseId;
+    var courseTitle = ViewBag.CourseTitle as string ?? "Course";
+    var search = ViewBag.Search as string;
+}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <div><h2 class="mb-1">Lessons</h2><p class="text-muted mb-0">@courseTitle</p></div>
+    <div><a asp-controller="Courses" asp-action="Index" class="btn btn-outline-secondary me-2">Back to Courses</a><a asp-action="Create" asp-route-courseId="@courseId" class="btn btn-primary"><i class="bi bi-plus-lg me-1"></i> Add Lesson</a></div>
+</div>
+<form method="get" class="row g-2 mb-3"><div class="col-md-5"><input name="search" value="@search" class="form-control" placeholder="Search lessons" /></div><div class="col-auto"><button class="btn btn-outline-primary"><i class="bi bi-search"></i></button></div></form>
+<form asp-action="Reorder" asp-route-courseId="@courseId" method="post">
+@Html.AntiForgeryToken()
+<div class="card shadow-sm border-0"><div class="card-body p-0"><table class="table table-hover mb-0">
+<thead class="table-light"><tr><th style="width:90px;">Order</th><th>Title</th><th>Type</th><th>Media</th><th>Duration</th><th>Status</th><th class="text-end">Actions</th></tr></thead>
+<tbody>
+@if(!Model.Any()) { <tr><td colspan="7" class="text-center py-4">No lessons found.</td></tr> }
+@foreach (var lesson in Model)
+{
+    <tr>
+        <td><input type="hidden" name="lessonIds" value="@lesson.Id" /><span class="badge bg-light text-dark border">@lesson.Order</span></td>
+        <td class="fw-semibold">@lesson.Title</td>
+        <td>@lesson.Type</td>
+        <td>@if(!string.IsNullOrWhiteSpace(lesson.ContentUrl)){<span class="badge bg-info text-dark">Video</span>} @if(!string.IsNullOrWhiteSpace(lesson.ResourcesUrl)){<span class="badge bg-danger">PDF</span>}</td>
+        <td>@lesson.DurationMinutes min</td>
+        <td><span class="badge @(lesson.IsPublished ? "bg-success" : "bg-secondary")">@(lesson.IsPublished ? "Published" : "Draft")</span></td>
+        <td class="text-end">
+            <a asp-action="Preview" asp-route-id="@lesson.Id" class="btn btn-sm btn-outline-secondary"><i class="bi bi-play-circle"></i></a>
+            <a asp-action="Edit" asp-route-id="@lesson.Id" class="btn btn-sm btn-outline-primary"><i class="bi bi-pencil"></i></a>
+            <a asp-controller="Quizzes" asp-action="Index" asp-route-lessonId="@lesson.Id" class="btn btn-sm btn-outline-info"><i class="bi bi-question-circle"></i></a>
+            <button type="submit" formaction="/Lessons/Delete/@lesson.Id" class="btn btn-sm btn-outline-danger" data-confirm="Delete this lesson? Related progress and quiz history will be preserved."><i class="bi bi-trash"></i></button>
+        </td>
+    </tr>
+}
+</tbody></table></div></div>
+@if(Model.Any()){<button class="btn btn-outline-primary mt-3"><i class="bi bi-arrow-down-up me-1"></i> Save Current Order</button>}
+</form>
+
+

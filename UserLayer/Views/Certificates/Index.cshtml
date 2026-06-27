@@ -1,0 +1,60 @@
+@model IEnumerable<DataLayer.Entities.Certificate>
+@{
+    var certs = Model.ToList();
+}
+
+<section class="premium-hero py-4">
+    <div class="container d-flex align-items-center justify-content-between gap-3 flex-wrap">
+        <div>
+            <span class="section-badge"><i class="bi bi-award"></i> Credentials</span>
+            <h1 class="section-title text-white mt-2 mb-1">My Certificates</h1>
+            <p style="color:#cbd5e1;margin:0;">@certs.Count certificate@(certs.Count != 1 ? "s" : "") earned</p>
+        </div>
+        <a href="/Courses" class="btn-outline-custom" style="background:rgba(255,255,255,.08);border-color:rgba(255,255,255,.22);color:#fff;width:auto;"><i class="bi bi-compass"></i> Explore Courses</a>
+    </div>
+</section>
+
+<div class="container py-5">
+    @if (certs.Any())
+    {
+        <div class="row row-cols-1 row-cols-md-2 g-4">
+            @foreach (var cert in certs)
+            {
+                var courseName = !string.IsNullOrWhiteSpace(cert.Course?.Title) ? cert.Course.Title : "Course name unavailable";
+                var studentName = !string.IsNullOrWhiteSpace(cert.Student?.FullName) ? cert.Student.FullName : "Student name unavailable";
+                var instructorName = !string.IsNullOrWhiteSpace(cert.Course?.Instructor?.FullName) ? cert.Course.Instructor.FullName : "LearnHub Instructor";
+                var verifyPath = !string.IsNullOrWhiteSpace(cert.VerificationUrl) ? cert.VerificationUrl : $"/Certificates/Verify/{cert.Id}";
+                <div class="col">
+                    <article class="dashboard-card h-100" style="border-color:#ead99f;background:linear-gradient(135deg,#fffdf7,#ffffff);">
+                        <div class="d-flex justify-content-between align-items-start gap-3 mb-3">
+                            <div class="d-flex align-items-center gap-2" style="font-family:'Outfit',sans-serif;font-weight:900;font-size:1.1rem;"><span style="width:36px;height:36px;border-radius:12px;background:linear-gradient(135deg,var(--brand),var(--brand-2));color:#fff;display:grid;place-items:center;"><i class="bi bi-mortarboard-fill"></i></span>LearnHub</div>
+                            <span class="badge rounded-pill" style="background:#fff7d6;color:#7c5d14;border:1px solid #ead99f;">Verified</span>
+                        </div>
+                        <div class="course-meta text-uppercase fw-bold">Certificate of Completion</div>
+                        <h2 style="font-size:1.25rem;font-weight:900;margin:.45rem 0;color:#172033;">@courseName</h2>
+                        <p class="course-meta mb-3">Issued to @studentName</p>
+                        <div class="d-grid gap-2 mb-3">
+                            <div class="d-flex justify-content-between gap-3"><span class="course-meta">Instructor</span><strong>@instructorName</strong></div>
+                            <div class="d-flex justify-content-between gap-3"><span class="course-meta">Issued</span><strong>@cert.IssuedAt.ToString("MMM dd, yyyy")</strong></div>
+                            <div><span class="course-meta d-block">Certificate ID</span><strong style="font-family:monospace;font-size:.82rem;word-break:break-all;">@cert.CertificateNumber</strong></div>
+                        </div>
+                        <div class="d-flex gap-2 flex-wrap">
+                            <a href="/Certificates/Details/@cert.Id" class="btn-primary-custom" style="padding:.55rem 1rem;font-size:.82rem;width:auto;"><i class="bi bi-eye"></i> View</a>
+                            <a href="@verifyPath" target="_blank" class="btn-outline-custom" style="padding:.55rem 1rem;font-size:.82rem;width:auto;"><i class="bi bi-shield-check"></i> Verify</a>
+                            <a href="/Certificates/Download/@cert.Id" class="btn-outline-custom" style="padding:.55rem 1rem;font-size:.82rem;width:auto;"><i class="bi bi-download"></i> PDF</a>
+                        </div>
+                    </article>
+                </div>
+            }
+        </div>
+    }
+    else
+    {
+        <div class="text-center py-5 dashboard-card">
+            <i class="bi bi-award" style="font-size:4rem;color:#d9b65d;"></i>
+            <h3 class="mt-4" style="font-weight:900;">No certificates yet</h3>
+            <p class="text-muted mb-4">Complete a course to earn your first verified LearnHub credential.</p>
+            <a href="/MyCourses" class="btn-primary-custom">Go to My Courses</a>
+        </div>
+    }
+</div>

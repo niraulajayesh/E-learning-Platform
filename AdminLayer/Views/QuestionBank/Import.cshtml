@@ -1,0 +1,24 @@
+@model AdminLayer.Models.QuestionBankImportViewModel
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <div><h1 class="h3 mb-1">Import Questions</h1><p class="text-muted mb-0">Upload CSV or Excel files and validate rows before saving.</p></div>
+    <a class="btn btn-outline-secondary" asp-action="Index"><i class="bi bi-arrow-left"></i> Back</a>
+</div>
+<div class="row g-4">
+    <div class="col-lg-7"><div class="card border-0 shadow-sm"><div class="card-body">
+        <form asp-action="Import" method="post" enctype="multipart/form-data">@Html.AntiForgeryToken()
+            <div class="mb-3"><label class="form-label" asp-for="File">Question file</label><input class="form-control" asp-for="File" type="file" accept=".csv,.xlsx" /></div>
+            <div class="form-check mb-3"><input class="form-check-input" asp-for="SaveValidRows" /><label class="form-check-label" asp-for="SaveValidRows">Save when all rows pass validation</label></div>
+            <button type="submit" class="btn btn-primary"><i class="bi bi-upload"></i> Validate Import</button>
+        </form>
+    </div></div></div>
+    <div class="col-lg-5"><div class="card border-0 shadow-sm"><div class="card-body">
+        <h2 class="h6">Required columns</h2>
+        <p class="text-muted small mb-2">Category, Topic, Difficulty, QuestionText, OptionA, OptionB, OptionC, OptionD, CorrectAnswer, DetailedExplanation</p>
+        <p class="text-muted small mb-0">Optional columns include Subtopic, OptionE, OptionF, SourceReference, Tags, EstimatedTime, Status, QuestionImage, ExplanationImage, WrongAnswerExplanation.</p>
+    </div></div></div>
+</div>
+@if (Model.Errors.Any())
+{
+    <div class="card border-danger mt-4"><div class="card-header bg-danger text-white">Validation errors</div><div class="card-body"><ul class="mb-0">@foreach (var error in Model.Errors) { <li>@error</li> }</ul></div></div>
+}
+

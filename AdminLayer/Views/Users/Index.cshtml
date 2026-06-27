@@ -1,0 +1,19 @@
+﻿@using SharedLayer.Enums
+@model IEnumerable<DataLayer.Entities.User>
+@{
+    ViewData["Title"] = "Users";
+    var search = ViewBag.Search as string;
+    var role = ViewBag.Role as UserRole?;
+    var isActive = ViewBag.IsActive as bool?;
+}
+<div class="d-flex justify-content-between align-items-center mb-4"><div><h2>Users</h2><p class="text-muted mb-0">Manage admins, instructors, and students.</p></div><a href="/Users/Create" class="btn btn-primary"><i class="bi bi-person-plus me-1"></i> Add User</a></div>
+<form method="get" class="row g-2 mb-3"><div class="col-md-4"><input name="search" value="@search" class="form-control" placeholder="Search users" /></div><div class="col-md-2"><select name="role" class="form-select"><option value="">All roles</option>@foreach(var r in Enum.GetValues<UserRole>()){<option value="@r" selected="@(role == r)">@r</option>}</select></div><div class="col-md-2"><select name="isActive" class="form-select"><option value="">All status</option><option value="true" selected="@(isActive == true)">Active</option><option value="false" selected="@(isActive == false)">Suspended</option></select></div><div class="col-auto"><button class="btn btn-outline-primary"><i class="bi bi-search"></i></button></div><div class="col-auto"><a href="/Users" class="btn btn-outline-secondary">Reset</a></div></form>
+<div class="card shadow-sm border-0"><div class="card-body p-0"><table class="table table-hover mb-0"><thead class="table-light"><tr><th>Name</th><th>Email</th><th>Role</th><th>Status</th><th>Last Login</th><th class="text-end">Actions</th></tr></thead><tbody>
+@if(!Model.Any()){<tr><td colspan="6" class="text-center py-4">No users found.</td></tr>}
+@foreach (var user in Model)
+{
+<tr><td class="fw-semibold">@user.FullName</td><td>@user.Email</td><td><span class="badge bg-secondary">@user.Role</span></td><td><span class="badge @(user.IsActive ? "bg-success" : "bg-danger")">@(user.IsActive ? "Active" : "Suspended")</span></td><td>@(user.LastLoginAt?.ToString("MMM dd, yyyy") ?? "-")</td><td class="text-end"><div class="dropdown"><button class="btn btn-sm btn-outline-secondary dropdown-toggle" data-bs-toggle="dropdown">Actions</button><ul class="dropdown-menu dropdown-menu-end"><li><a class="dropdown-item" href="/Users/Edit/@user.Id">Edit</a></li>@if(user.Role == UserRole.Student){<li><form asp-action="PromoteInstructor" method="post">@Html.AntiForgeryToken()<input type="hidden" name="id" value="@user.Id" /><button class="dropdown-item">Promote to Instructor</button></form></li>}<li><form asp-action="SetStatus" method="post">@Html.AntiForgeryToken()<input type="hidden" name="id" value="@user.Id" /><input type="hidden" name="isActive" value="@(!user.IsActive)" /><button class="dropdown-item">@(user.IsActive ? "Suspend" : "Activate")</button></form></li></ul></div></td></tr>
+}
+</tbody></table></div></div>
+
+

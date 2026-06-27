@@ -1,0 +1,43 @@
+@model IEnumerable<DataLayer.Entities.Testimonial>
+@{
+    ViewData["Title"] = "Testimonials";
+}
+
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h2>Testimonials</h2>
+    <a asp-controller="Testimonials" asp-action="Create" class="btn btn-primary"><i class="bi bi-plus-lg me-1"></i> Add Testimonial</a>
+</div>
+
+<div class="card shadow-sm border-0">
+    <div class="card-body p-0">
+        <table class="table table-hover mb-0">
+            <thead class="table-light">
+                <tr>
+                    <th>Student Name</th>
+                    <th>Role</th>
+                    <th>Rating</th>
+                    <th>Status</th>
+                    <th class="text-end">Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var testimonial in Model)
+                {
+                    <tr>
+                        <td>@testimonial.StudentName</td>
+                        <td>@testimonial.StudentRole</td>
+                        <td>@testimonial.Rating / 5</td>
+                        <td>
+                            @if(testimonial.IsVisible) { <span class="badge bg-success">Visible</span> }
+                            else { <span class="badge bg-secondary">Hidden</span> }
+                        </td>
+                        <td class="text-end">
+                            <button class="btn btn-sm btn-outline-primary"><i class="bi bi-pencil"></i></button>
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+</div>
+

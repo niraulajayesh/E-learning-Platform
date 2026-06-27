@@ -1,0 +1,504 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>@ViewData["Title"] - LearnHub</title>
+        <meta name="description" content="@(ViewData["MetaDescription"] ?? "LearnHub provides premium ASVAB exam preparation with courses, practice tests, study guides, flashcards, and progress tracking.")" />
+    <link rel="canonical" href="@(ViewData["CanonicalUrl"] ?? $"{Context.Request.Scheme}://{Context.Request.Host}{Context.Request.Path}")" />
+    <meta property="og:title" content="@(ViewData["OgTitle"] ?? ViewData["Title"] ?? "LearnHub ASVAB Prep")" />
+    <meta property="og:description" content="@(ViewData["MetaDescription"] ?? "Premium ASVAB preparation courses, tests, flashcards, and study guides.")" />
+    <meta property="og:type" content="website" />
+    <meta property="og:url" content="@(ViewData["CanonicalUrl"] ?? $"{Context.Request.Scheme}://{Context.Request.Host}{Context.Request.Path}")" />
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:title" content="@(ViewData["OgTitle"] ?? ViewData["Title"] ?? "LearnHub ASVAB Prep")" />
+    <meta name="twitter:description" content="@(ViewData["MetaDescription"] ?? "Premium ASVAB preparation courses, tests, flashcards, and study guides.")" />
+
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Outfit:wght@700;800;900&display=swap" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css">
+    <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
+
+    <style>
+        :root {
+            --ink: #101828;
+            --muted: #667085;
+            --soft: #f5f7fb;
+            --line: #e6eaf0;
+            --brand: #3157d5;
+            --brand-2: #17a2a4;
+            --brand-3: #f59e0b;
+            --success: #16a34a;
+            --danger: #dc2626;
+            --panel: #ffffff;
+            --nav: #0b1220;
+            --shadow-sm: 0 8px 24px rgba(16, 24, 40, 0.07);
+            --shadow-md: 0 18px 48px rgba(16, 24, 40, 0.12);
+            --shadow-lg: 0 26px 70px rgba(16, 24, 40, 0.18);
+            --radius: 14px;
+            --radius-sm: 10px;
+        }
+
+        * { box-sizing: border-box; }
+        html { scroll-behavior: smooth; }
+        body {
+            font-family: 'Inter', sans-serif;
+            color: var(--ink);
+            background: #fbfcff;
+            letter-spacing: 0;
+        }
+
+        h1, h2, h3, h4, h5, h6 { font-family: 'Outfit', sans-serif; letter-spacing: 0; }
+        a { color: inherit; }
+        img { max-width: 100%; }
+
+        .app-shell { min-height: 100vh; display: flex; flex-direction: column; }
+        .main-content { flex: 1; }
+
+        .navbar-main {
+            position: sticky;
+            top: 0;
+            z-index: 1030;
+            background: rgba(255, 255, 255, 0.92);
+            backdrop-filter: blur(18px);
+            border-bottom: 1px solid rgba(230, 234, 240, 0.9);
+        }
+        .nav-wrap {
+            min-height: 74px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 1rem;
+        }
+        .brand-mark {
+            display: inline-flex;
+            align-items: center;
+            gap: .65rem;
+            text-decoration: none;
+            color: var(--ink);
+            font-family: 'Outfit', sans-serif;
+            font-weight: 900;
+            font-size: 1.35rem;
+        }
+        .brand-icon {
+            width: 38px;
+            height: 38px;
+            border-radius: 12px;
+            display: grid;
+            place-items: center;
+            color: #fff;
+            background: linear-gradient(135deg, var(--brand), var(--brand-2));
+            box-shadow: 0 10px 26px rgba(49, 87, 213, .28);
+        }
+        .nav-links { display: flex; align-items: center; gap: .25rem; margin: 0; padding: 0; list-style: none; }
+        .nav-link {
+            color: #344054 !important;
+            font-weight: 700;
+            font-size: .92rem;
+            padding: .6rem .82rem !important;
+            border-radius: 999px;
+        }
+        .nav-link:hover, .nav-link.active { color: var(--brand) !important; background: #eef3ff; }
+
+        .nav-search,
+        .mobile-nav-search {
+            width: min(320px, 28vw);
+            min-width: 220px;
+            border: 1px solid var(--line);
+            background: #f8fafc;
+            border-radius: 999px;
+            padding: .62rem 1rem;
+            font-size: .9rem;
+            color: var(--ink);
+        }
+        .nav-search:focus,
+        .mobile-nav-search:focus {
+            outline: none;
+            border-color: rgba(49, 87, 213, .45);
+            box-shadow: 0 0 0 4px rgba(49, 87, 213, .11);
+            background: #fff;
+        }
+
+        .btn-nav-login, .btn-nav-signup, .btn-primary-custom, .btn-outline-custom {
+            border-radius: 999px;
+            font-weight: 800;
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: .45rem;
+            transition: transform .2s ease, box-shadow .2s ease, background .2s ease, border-color .2s ease;
+            white-space: nowrap;
+        }
+        .btn-nav-login {
+            color: var(--ink);
+            border: 1px solid var(--line);
+            padding: .58rem 1rem;
+            background: #fff;
+        }
+        .btn-nav-signup, .btn-primary-custom {
+            color: #fff;
+            border: 1px solid transparent;
+            background: linear-gradient(135deg, var(--brand), var(--brand-2));
+            box-shadow: 0 12px 28px rgba(49, 87, 213, .24);
+        }
+        .btn-nav-signup { padding: .6rem 1.08rem; }
+        .btn-primary-custom { padding: .78rem 1.25rem; }
+        .btn-nav-signup:hover, .btn-primary-custom:hover, .btn-outline-custom:hover { transform: translateY(-1px); }
+        .btn-outline-custom {
+            color: var(--ink);
+            background: #fff;
+            border: 1px solid var(--line);
+            padding: .75rem 1.2rem;
+        }
+
+        .mobile-menu-btn {
+            display: none;
+            width: 42px;
+            height: 42px;
+            border: 1px solid var(--line);
+            border-radius: 12px;
+            background: #fff;
+            color: var(--ink);
+        }
+
+        .mobile-panel { display: none; border-top: 1px solid var(--line); padding: 1rem 0 1.25rem; }
+        .mobile-nav-link {
+            display: flex;
+            align-items: center;
+            gap: .65rem;
+            padding: .7rem .85rem;
+            border-radius: 12px;
+            text-decoration: none;
+            color: #344054;
+            font-weight: 800;
+        }
+        .mobile-nav-link.active, .mobile-nav-link:hover {
+            background: #eef3ff;
+            color: var(--brand);
+        }
+        .mobile-nav-link i { width: 18px; text-align: center; }
+
+        .premium-hero {
+            background:
+                radial-gradient(circle at 18% 16%, rgba(23, 162, 164, .30), transparent 28%),
+                radial-gradient(circle at 84% 10%, rgba(245, 158, 11, .20), transparent 26%),
+                linear-gradient(135deg, #0b1220 0%, #16203a 52%, #112f3a 100%);
+            color: #fff;
+        }
+
+        .section-title { font-weight: 900; font-size: clamp(1.7rem, 3vw, 2.55rem); line-height: 1.07; }
+        .section-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: .45rem;
+            color: #0f766e;
+            background: #e7f8f6;
+            border: 1px solid #c9efea;
+            border-radius: 999px;
+            padding: .38rem .8rem;
+            font-size: .75rem;
+            font-weight: 900;
+            text-transform: uppercase;
+            letter-spacing: .06em;
+        }
+
+        .surface-band { background: var(--soft); }
+        .dashboard-card, .premium-card {
+            background: var(--panel);
+            border: 1px solid var(--line);
+            border-radius: var(--radius);
+            padding: 1.35rem;
+            box-shadow: 0 1px 2px rgba(16, 24, 40, .03);
+        }
+
+        .course-card {
+            position: relative;
+            height: 100%;
+            overflow: hidden;
+            border: 1px solid var(--line);
+            border-radius: var(--radius);
+            background: #fff;
+            box-shadow: 0 1px 2px rgba(16, 24, 40, .03);
+            transition: transform .2s ease, box-shadow .2s ease, border-color .2s ease;
+        }
+        .course-card:hover {
+            transform: translateY(-5px);
+            box-shadow: var(--shadow-md);
+            border-color: rgba(49, 87, 213, .25);
+        }
+        .course-media {
+            position: relative;
+            overflow: hidden;
+            aspect-ratio: 16 / 10;
+            background: linear-gradient(135deg, #eaf1ff, #dff8f6);
+        }
+        .course-card img { width: 100%; height: 100%; object-fit: cover; transition: transform .35s ease; }
+        .course-card:hover img { transform: scale(1.04); }
+        .course-media-fallback {
+            height: 100%;
+            display: grid;
+            place-items: center;
+            color: #fff;
+            font-size: 2.6rem;
+            background: linear-gradient(135deg, var(--brand), var(--brand-2));
+        }
+        .course-card .card-body, .course-card-body { padding: 1rem; }
+        .course-description { color: var(--muted); font-size: .93rem; margin: 0; line-height: 1.72; }
+        .course-category {
+            display: inline-flex;
+            align-items: center;
+            gap: .35rem;
+            width: fit-content;
+            color: #475467;
+            background: #eef3ff;
+            border: 1px solid #dbe8ff;
+            border-radius: 999px;
+            padding: .32rem .7rem;
+            font-size: .76rem;
+            font-weight: 800;
+            text-transform: uppercase;
+            letter-spacing: .045em;
+        }
+        .course-title { min-height: 2.9rem; color: var(--ink); font-weight: 900; font-size: 1rem; line-height: 1.42; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+        .course-meta { color: var(--muted); font-size: .82rem; }
+        .course-price { font-family: 'Outfit', sans-serif; font-weight: 900; color: var(--brand); font-size: 1.15rem; }
+        .course-price-free { color: var(--success); }
+        .course-old-price { text-decoration: line-through; color: #98a2b3; font-size: .86rem; }
+        .rating-stars { color: var(--brand-3); font-size: .82rem; }
+
+        .badge-level { border-radius: 999px; padding: .32rem .66rem; font-size: .7rem; font-weight: 900; text-transform: uppercase; letter-spacing: .04em; }
+        .badge-beginner { color: #067647; background: #dcfae6; }
+        .badge-intermediate { color: #b54708; background: #fef0c7; }
+        .badge-advanced { color: #b42318; background: #fee4e2; }
+        .badge-all { color: #175cd3; background: #dbeafe; }
+
+        .category-card, .testimonial-card, .instructor-card {
+            display: block;
+            height: 100%;
+            color: inherit;
+            text-decoration: none;
+            background: #fff;
+            border: 1px solid var(--line);
+            border-radius: var(--radius);
+            padding: 1.25rem;
+            transition: transform .2s ease, box-shadow .2s ease, border-color .2s ease;
+        }
+        .category-card:hover, .testimonial-card:hover, .instructor-card:hover { transform: translateY(-3px); box-shadow: var(--shadow-sm); border-color: rgba(23, 162, 164, .28); }
+        .category-icon { width: 50px; height: 50px; border-radius: 14px; display: grid; place-items: center; font-size: 1.35rem; color: var(--ink); margin-bottom: .9rem; }
+
+        .stats-bar { background: #fff; border-bottom: 1px solid var(--line); padding: 2.2rem 0; }
+        .stat-item h3 { font-weight: 900; color: var(--brand); font-size: clamp(1.7rem, 3vw, 2.4rem); margin: 0; }
+        .metric-card { border-radius: var(--radius); padding: 1.25rem; color: #fff; min-height: 148px; box-shadow: var(--shadow-sm); }
+        .progress-custom { height: 8px; border-radius: 999px; background: #e9edf5; overflow: hidden; }
+        .progress-custom .progress-bar { border-radius: 999px; background: linear-gradient(90deg, var(--brand), var(--brand-2)); }
+
+        .footer-main { background: var(--nav); color: #98a2b3; padding: 3.5rem 0 1.75rem; margin-top: auto; }
+        .footer-main a { color: #b8c0cc; text-decoration: none; }
+        .footer-main a:hover { color: #fff; }
+        .footer-brand { font-family: 'Outfit', sans-serif; font-weight: 900; color: #fff; font-size: 1.35rem; }
+
+        .course-count-chip {
+            border-radius: 999px;
+            border: 1px solid var(--line);
+            background: #fff;
+            color: var(--muted);
+            display: inline-flex;
+            align-items: center;
+            gap: .45rem;
+            padding: .45rem .9rem;
+            font-size: .78rem;
+            font-weight: 700;
+        }
+
+
+        .ux-chip {
+            display: inline-flex;
+            align-items: center;
+            gap: .4rem;
+            border: 1px solid var(--line);
+            border-radius: 999px;
+            background: #fff;
+            color: #475467;
+            padding: .52rem .9rem;
+            font-size: .84rem;
+            font-weight: 800;
+            text-decoration: none;
+            transition: background .2s ease, border-color .2s ease, color .2s ease, transform .2s ease;
+        }
+        .ux-chip:hover, .ux-chip.active {
+            color: var(--brand);
+            border-color: #c7d7fe;
+            background: #eef3ff;
+            transform: translateY(-1px);
+        }
+        .hero-dark {
+            background:
+                radial-gradient(circle at 18% 16%, rgba(23, 162, 164, .28), transparent 28%),
+                linear-gradient(135deg, #0b1220 0%, #16203a 58%, #112f3a 100%);
+            color: #fff;
+        }
+        .market-toolbar {
+            border: 1px solid var(--line);
+            border-radius: var(--radius);
+            background: #fff;
+            padding: 1rem;
+            box-shadow: 0 1px 2px rgba(16, 24, 40, .03);
+        }
+        @@media (max-width: 991.98px) {
+            .desktop-only { display: none !important; }
+            .mobile-menu-btn { display: inline-grid; place-items: center; }
+            .mobile-panel.show { display: block; }
+            .nav-wrap { min-height: 66px; }
+            .brand-mark { font-size: 1.18rem; }
+            .brand-icon { width: 34px; height: 34px; }
+        }
+
+        @@media (max-width: 575.98px) {
+            .container { padding-left: 1rem; padding-right: 1rem; }
+            .btn-primary-custom, .btn-outline-custom { width: 100%; padding: .82rem 1rem; }
+            .dashboard-card, .premium-card { padding: 1rem; border-radius: 12px; }
+            .course-card .card-body { padding: .92rem; }
+            .section-title { font-size: 1.65rem; }
+            .hero-dark, .premium-hero { text-align: left; }
+            .section-title.text-white { font-size: 1.95rem; }
+        }
+    </style>
+
+    @await RenderSectionAsync("Styles", required: false)
+</head>
+<body>
+<a class="skip-link" href="#main-content">Skip to content</a>
+<div class="app-shell">
+    <nav class="navbar-main">
+        <div class="container">
+            <div class="nav-wrap">
+                <a href="/" class="brand-mark" aria-label="LearnHub home">
+                    <span class="brand-icon"><i class="bi bi-mortarboard-fill"></i></span>
+                    <span>LearnHub</span>
+                </a>
+
+                <ul class="nav-links desktop-only">
+                    <li><a class="nav-link @(ViewContext.RouteData.Values["controller"]?.ToString() == "PracticeTests" ? "active" : "")" href="/PracticeTests">Practice Tests</a></li>
+                    <li><a class="nav-link @(ViewContext.RouteData.Values["controller"]?.ToString() == "StudyGuides" ? "active" : "")" href="/StudyGuides">Study Guides</a></li>
+                    <li><a class="nav-link @(ViewContext.RouteData.Values["controller"]?.ToString() == "Flashcards" ? "active" : "")" href="/Flashcards">Flashcards</a></li>
+                    <li><a class="nav-link @(ViewContext.RouteData.Values["controller"]?.ToString() == "Courses" ? "active" : "")" href="/Courses">Courses</a></li>
+                    <li><a class="nav-link @(ViewContext.RouteData.Values["controller"]?.ToString() == "ExamSimulator" ? "active" : "")" href="/ExamSimulator">Mock Exam</a></li>
+                    <li><a class="nav-link @(ViewContext.RouteData.Values["controller"]?.ToString() == "StudyPlanner" ? "active" : "")" href="/StudyPlanner">Planner</a></li>
+                </ul>
+
+                <form action="/Courses" method="get" class="desktop-only">
+                    <input type="text" name="q" class="nav-search" placeholder="Search ASVAB topics" value="@ViewData["SearchQuery"]" />
+                </form>
+
+                <div class="d-flex align-items-center gap-2 desktop-only">
+                    @if (User.Identity?.IsAuthenticated == true)
+                    {
+                        <a href="/Dashboard" class="btn-nav-login"><i class="bi bi-grid-1x2"></i> Dashboard</a>
+                        <div class="dropdown">
+                            <button class="btn p-0 border-0 bg-transparent" data-bs-toggle="dropdown" aria-label="Account menu">
+                                <span style="width:40px;height:40px;border-radius:50%;background:linear-gradient(135deg,var(--brand),var(--brand-2));display:grid;place-items:center;color:#fff;font-weight:900;">@User.Identity.Name?.Substring(0,1).ToUpper()</span>
+                            </button>
+                            <ul class="dropdown-menu dropdown-menu-end mt-2 shadow-lg border-0" style="border-radius:12px;min-width:190px;">
+                                <li><a class="dropdown-item" href="/Dashboard"><i class="bi bi-grid-1x2 me-2"></i>Dashboard</a></li>
+                                <li><a class="dropdown-item" href="/MyCourses"><i class="bi bi-play-circle me-2"></i>My Courses</a></li>
+                                <li><a class="dropdown-item" href="/Wishlist"><i class="bi bi-heart me-2"></i>Wishlist</a></li>
+                                <li><a class="dropdown-item" href="/Certificates"><i class="bi bi-award me-2"></i>Certificates</a></li>
+                                <li><a class="dropdown-item" href="/Profile"><i class="bi bi-person me-2"></i>Profile</a></li>
+                                <li><hr class="dropdown-divider"></li>
+                                <li><a class="dropdown-item text-danger" href="/Auth/Logout"><i class="bi bi-box-arrow-right me-2"></i>Sign Out</a></li>
+                            </ul>
+                        </div>
+                    }
+                    else
+                    {
+                        <a href="/Auth/Login" class="btn-nav-login">Sign In</a>
+                        <a href="/Auth/Register" class="btn-nav-signup">Get Started</a>
+                    }
+                </div>
+
+                <button class="mobile-menu-btn" type="button" data-bs-toggle="collapse" data-bs-target="#mobileNav" aria-controls="mobileNav" aria-expanded="false" aria-label="Toggle navigation">
+                    <i class="bi bi-list fs-4"></i>
+                </button>
+            </div>
+
+            <div class="collapse mobile-panel" id="mobileNav">
+                <form action="/Courses" method="get">
+                    <input type="text" name="q" class="mobile-nav-search" placeholder="Search ASVAB topics" value="@ViewData["SearchQuery"]" />
+                </form>
+                <a class="mobile-nav-link @(ViewContext.RouteData.Values["controller"]?.ToString() == "Home" ? "active" : "")" href="/">Home</a>
+                <a class="mobile-nav-link @(ViewContext.RouteData.Values["controller"]?.ToString() == "PracticeTests" ? "active" : "")" href="/PracticeTests">Practice Tests</a>
+                <a class="mobile-nav-link @(ViewContext.RouteData.Values["controller"]?.ToString() == "StudyGuides" ? "active" : "")" href="/StudyGuides">Study Guides</a>
+                <a class="mobile-nav-link @(ViewContext.RouteData.Values["controller"]?.ToString() == "Flashcards" ? "active" : "")" href="/Flashcards">Flashcards</a>
+                <a class="mobile-nav-link @(ViewContext.RouteData.Values["controller"]?.ToString() == "Courses" ? "active" : "")" href="/Courses">Courses</a>
+                <a class="mobile-nav-link @(ViewContext.RouteData.Values["controller"]?.ToString() == "ExamSimulator" ? "active" : "")" href="/ExamSimulator">Mock Exam</a>
+                <a class="mobile-nav-link @(ViewContext.RouteData.Values["controller"]?.ToString() == "StudyPlanner" ? "active" : "")" href="/StudyPlanner">Planner</a>
+                <a class="mobile-nav-link @(ViewContext.RouteData.Values["controller"]?.ToString() == "Categories" ? "active" : "")" href="/Categories">Categories</a>
+                @if (User.Identity?.IsAuthenticated == true)
+                {
+                    <a class="mobile-nav-link" href="/Dashboard"><i class="bi bi-grid-1x2"></i>Dashboard</a>
+                    <a class="mobile-nav-link" href="/MyCourses"><i class="bi bi-play-circle"></i>My Courses</a>
+                    <a class="mobile-nav-link" href="/Wishlist"><i class="bi bi-heart"></i>Wishlist</a>
+                    <a class="mobile-nav-link" href="/Certificates"><i class="bi bi-award"></i>Certificates</a>
+                    <a class="mobile-nav-link" href="/Profile"><i class="bi bi-person"></i>Profile</a>
+                    <a class="mobile-nav-link text-danger" href="/Auth/Logout"><i class="bi bi-box-arrow-right"></i>Sign Out</a>
+                }
+                else
+                {
+                    <div class="d-grid gap-2 mt-2">
+                        <a href="/Auth/Login" class="btn-nav-login">Sign In</a>
+                        <a href="/Auth/Register" class="btn-nav-signup">Get Started</a>
+                    </div>
+                }
+            </div>
+        </div>
+    </nav>
+
+    @if (TempData["Success"] != null)
+    {
+        <div class="alert alert-success alert-dismissible fade show rounded-0 border-0 mb-0">
+            <div class="container"><i class="bi bi-check-circle me-2"></i>@TempData["Success"]<button type="button" class="btn-close" data-bs-dismiss="alert"></button></div>
+        </div>
+    }
+    @if (TempData["Error"] != null)
+    {
+        <div class="alert alert-danger alert-dismissible fade show rounded-0 border-0 mb-0">
+            <div class="container"><i class="bi bi-exclamation-circle me-2"></i>@TempData["Error"]<button type="button" class="btn-close" data-bs-dismiss="alert"></button></div>
+        </div>
+    }
+
+    <main id="main-content" class="main-content" tabindex="-1">
+        @RenderBody()
+    </main>
+
+    <footer class="footer-main">
+        <div class="container">
+            <div class="row g-4 mb-4">
+                <div class="col-lg-4">
+                    <div class="footer-brand mb-2">LearnHub</div>
+                    <p class="mb-3" style="font-size:.92rem;line-height:1.75;max-width:340px;">ASVAB preparation tools for practice tests, study guides, flashcards, progress tracking, and mock exam readiness.</p>
+                </div>
+                <div class="col-6 col-lg-2"><h6 class="text-white fw-bold mb-3">Prep Tools</h6><ul class="list-unstyled" style="line-height:2.2;font-size:.9rem;"><li><a href="/PracticeTests">Practice Tests</a></li><li><a href="/StudyGuides">Study Guides</a></li><li><a href="/Flashcards">Flashcards</a></li><li><a href="/ExamSimulator">Mock Exam</a></li></ul></div>
+                <div class="col-6 col-lg-2"><h6 class="text-white fw-bold mb-3">Learn</h6><ul class="list-unstyled" style="line-height:2.2;font-size:.9rem;"><li><a href="/Courses">Courses</a></li><li><a href="/Categories">Categories</a></li><li><a href="/StudyPlanner">Study Planner</a></li></ul></div>
+                <div class="col-6 col-lg-2"><h6 class="text-white fw-bold mb-3">Account</h6><ul class="list-unstyled" style="line-height:2.2;font-size:.9rem;"><li><a href="/Auth/Register">Sign Up</a></li><li><a href="/Auth/Login">Sign In</a></li><li><a href="/Dashboard">Dashboard</a></li><li><a href="/Profile">Profile</a></li></ul></div>
+            </div>
+            <hr style="border-color:rgba(255,255,255,.1);">
+            <p class="text-center mb-0" style="font-size:.82rem;">&copy; @DateTime.Now.Year LearnHub. All rights reserved.</p>
+        </div>
+    </footer>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+<script src="~/js/site.js" asp-append-version="true"></script>
+@await RenderSectionAsync("Scripts", required: false)
+</body>
+</html>
+
+
+
+
+
+
+

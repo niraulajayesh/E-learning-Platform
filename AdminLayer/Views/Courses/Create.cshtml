@@ -1,0 +1,141 @@
+@using SharedLayer.Enums
+@model DataLayer.Entities.Course
+@{
+    ViewData["Title"] = "Add Course";
+    var categories = ViewBag.Categories as List<DataLayer.Entities.Category> ?? new();
+    var instructors = ViewBag.Instructors as List<DataLayer.Entities.User> ?? new();
+}
+
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h2>Add Course</h2>
+    <a href="/Courses" class="btn btn-outline-secondary">Back to Courses</a>
+</div>
+
+<div class="card shadow-sm border-0">
+    <div class="card-body">
+        <form method="post" enctype="multipart/form-data">
+            @Html.AntiForgeryToken()
+            <div asp-validation-summary="ModelOnly" class="text-danger mb-3"></div>
+
+            @if (!categories.Any() || !instructors.Any())
+            {
+                <div class="alert alert-warning">
+                    Add at least one category and one instructor before creating a course.
+                </div>
+            }
+
+            <div class="row">
+                <div class="col-md-8 mb-3">
+                    <label asp-for="Title" class="form-label fw-bold">Title</label>
+                    <input asp-for="Title" class="form-control" required maxlength="200" />
+                </div>
+                <div class="col-md-4 mb-3">
+                    <label asp-for="Slug" class="form-label fw-bold">Slug</label>
+                    <input asp-for="Slug" class="form-control" maxlength="220" placeholder="Auto-generated if blank" />
+                </div>
+            </div>
+
+            <div class="row">
+                <div class="col-md-6 mb-3">
+                    <label asp-for="InstructorId" class="form-label fw-bold">Instructor</label>
+                    <select asp-for="InstructorId" class="form-select" required>
+                        <option value="">Select instructor</option>
+                        @foreach (var instructor in instructors)
+                        {
+                            <option value="@instructor.Id">@instructor.FirstName @instructor.LastName (@instructor.Email)</option>
+                        }
+                    </select>
+                </div>
+                <div class="col-md-6 mb-3">
+                    <label asp-for="CategoryId" class="form-label fw-bold">Category</label>
+                    <select asp-for="CategoryId" class="form-select" required>
+                        <option value="">Select category</option>
+                        @foreach (var category in categories)
+                        {
+                            <option value="@category.Id">@category.Name</option>
+                        }
+                    </select>
+                </div>
+            </div>
+
+            <div class="mb-3">
+                <label asp-for="ShortDescription" class="form-label fw-bold">Short Description</label>
+                <textarea asp-for="ShortDescription" class="form-control" rows="2" required maxlength="500"></textarea>
+            </div>
+
+            <div class="mb-3">
+                <label asp-for="Description" class="form-label fw-bold">Description</label>
+                <textarea asp-for="Description" class="form-control" rows="5" required></textarea>
+            </div>
+
+            <div class="row">
+                <div class="col-md-6 mb-3">
+                    <label asp-for="ThumbnailUrl" class="form-label fw-bold">Thumbnail URL</label>
+                    <input asp-for="ThumbnailUrl" class="form-control" />
+                    <input name="thumbnailFile" type="file" accept="image/png,image/jpeg,image/webp,image/gif" class="form-control mt-2" />
+                    <div class="form-text">Optional image upload. Max 2 MB.</div>
+                </div>
+                <div class="col-md-6 mb-3">
+                    <label asp-for="PreviewVideoUrl" class="form-label fw-bold">Preview Video URL</label>
+                    <input asp-for="PreviewVideoUrl" class="form-control" />
+                </div>
+            </div>
+
+            <div class="row">
+                <div class="col-md-3 mb-3">
+                    <label asp-for="Price" class="form-label fw-bold">Price</label>
+                    <input asp-for="Price" type="number" step="0.01" min="0" class="form-control" />
+                </div>
+                <div class="col-md-3 mb-3">
+                    <label asp-for="DiscountedPrice" class="form-label fw-bold">Discounted Price</label>
+                    <input asp-for="DiscountedPrice" type="number" step="0.01" min="0" class="form-control" />
+                </div>
+                <div class="col-md-3 mb-3">
+                    <label asp-for="Level" class="form-label fw-bold">Level</label>
+                    <select asp-for="Level" class="form-select" asp-items="Html.GetEnumSelectList<CourseLevel>()"></select>
+                </div>
+                <div class="col-md-3 mb-3">
+                    <label asp-for="Status" class="form-label fw-bold">Status</label>
+                    <select asp-for="Status" class="form-select" asp-items="Html.GetEnumSelectList<CourseStatus>()"></select>
+                </div>
+            </div>
+
+            <div class="mb-3">
+                <label asp-for="Language" class="form-label fw-bold">Language</label>
+                <input asp-for="Language" class="form-control" required maxlength="50" />
+            </div>
+
+            <div class="mb-3">
+                <label asp-for="WhatYouWillLearn" class="form-label fw-bold">What Students Will Learn</label>
+                <textarea asp-for="WhatYouWillLearn" class="form-control" rows="3"></textarea>
+            </div>
+
+            <div class="mb-3">
+                <label asp-for="Requirements" class="form-label fw-bold">Requirements</label>
+                <textarea asp-for="Requirements" class="form-control" rows="2"></textarea>
+            </div>
+
+            <div class="mb-3">
+                <label asp-for="TargetAudience" class="form-label fw-bold">Target Audience</label>
+                <textarea asp-for="TargetAudience" class="form-control" rows="2"></textarea>
+            </div>
+
+            <div class="d-flex gap-4 mb-4">
+                <div class="form-check">
+                    <input asp-for="IsFeatured" class="form-check-input" />
+                    <label asp-for="IsFeatured" class="form-check-label fw-bold">Featured</label>
+                </div>
+                <div class="form-check">
+                    <input asp-for="IsBestseller" class="form-check-input" />
+                    <label asp-for="IsBestseller" class="form-check-label fw-bold">Bestseller</label>
+                </div>
+            </div>
+
+            <button type="submit" class="btn btn-primary" @(!categories.Any() || !instructors.Any() ? "disabled" : "")>
+                <i class="bi bi-save me-1"></i> Create Course
+            </button>
+        </form>
+    </div>
+</div>
+
+

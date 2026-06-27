@@ -1,0 +1,22 @@
+@model DataLayer.Entities.Lesson
+@{
+    ViewData["Title"] = "Lesson Preview";
+    var videoSource = Model.ContentUrl;
+}
+<div class="d-flex justify-content-between align-items-center mb-4"><div><h2>@Model.Title</h2><p class="text-muted mb-0">@Model.Section.Course.Title</p></div><a asp-action="Index" asp-route-courseId="@Model.Section.CourseId" class="btn btn-outline-secondary">Back</a></div>
+<div class="card shadow-sm border-0"><div class="card-body">
+@if (!string.IsNullOrWhiteSpace(videoSource))
+{
+    <video controls class="w-100 rounded bg-dark" style="max-height: 520px;"><source src="@videoSource" />Your browser does not support video playback.</video>
+}
+@if (!string.IsNullOrWhiteSpace(Model.ArticleContent))
+{
+    <div class="mt-4">@Html.Raw(Model.ArticleContent)</div>
+}
+@if (!string.IsNullOrWhiteSpace(Model.ResourcesUrl))
+{
+    <div class="mt-4"><a href="@Model.ResourcesUrl" target="_blank" class="btn btn-outline-danger"><i class="bi bi-file-earmark-pdf me-1"></i> Open PDF</a></div>
+}
+</div></div>
+
+

@@ -1,0 +1,13 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net10.0</TargetFramework>
+    <IsPackable>false</IsPackable>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\AdminLayer\AdminLayer.csproj" ReferenceOutputAssembly="false" Private="false" SetConfiguration="Configuration=$(Configuration)" />
+    <ProjectReference Include="..\UserLayer\UserLayer.csproj" ReferenceOutputAssembly="false" Private="false" SetConfiguration="Configuration=$(Configuration)" />
+  </ItemGroup>
+
+</Project>

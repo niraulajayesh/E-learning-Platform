@@ -1,0 +1,40 @@
+@model List<DataLayer.Entities.Enrollment>
+@{
+    var filter = ViewBag.Filter as string;
+    var activeTab = filter ?? "";
+    var nextLessonByCourse = ViewBag.NextLessonByCourse as Dictionary<Guid, Guid> ?? new();
+}
+
+<div class="hero-dark" style="padding:3rem 0;">
+    <div class="container">
+        <span class="section-badge">Learning library</span>
+        <h1 class="section-title text-white mb-2">My Courses</h1>
+        <p style="color:#9ca3af;margin:0;">Resume active courses and review completed learning.</p>
+        <div class="d-flex gap-2 flex-wrap mt-3">
+            @foreach (var tab in new[] { ("All", ""), ("Active", "active"), ("Completed", "completed") })
+            {
+                var isActive = activeTab == tab.Item2;
+                <a href="/MyCourses?filter=@tab.Item2" class="badge rounded-pill text-decoration-none" style="padding:0.55rem 1.2rem;font-size:0.85rem;font-weight:700;background:@(isActive ? "linear-gradient(135deg,#6c2bd9,#8b5cf6)" : "rgba(255,255,255,0.1)");color:#fff;">@tab.Item1</a>
+            }
+        </div>
+    </div>
+</div>
+
+<div class="container py-5">
+    @if (Model.Any())
+    {
+        <div class="row row-cols-1 row-cols-md-2 row-cols-lg-3 g-4">
+            @foreach (var enrollment in Model)
+            {
+                var course = enrollment.Course;
+                <div class="col"><div class="course-card"><div style="overflow:hidden;">@if (course != null && !string.IsNullOrEmpty(course.ThumbnailUrl)) { <img src="@course.ThumbnailUrl" alt="@course.Title" /> } else { <div style="height:185px;background:linear-gradient(135deg,#4c1d95,#6c2bd9);display:flex;align-items:center;justify-content:center;color:#fff;font-size:2.4rem;"><i class="bi bi-book"></i></div> }</div><div class="card-body"><h2 style="font-weight:800;color:#111827;font-size:1rem;margin-bottom:0.4rem;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;">@(course?.Title ?? "Course")</h2>@if (course?.Instructor != null) { <p style="color:#6b7280;font-size:0.8rem;margin-bottom:0.8rem;">@course.Instructor.FullName</p> }<div class="mb-1 d-flex justify-content-between" style="font-size:0.8rem;"><span style="color:#6b7280;">Progress</span><span style="color:#6c2bd9;font-weight:800;">@enrollment.CompletionPercentage.ToString("0")%</span></div><div class="progress-custom mb-3"><div class="progress-bar" style="width:@enrollment.CompletionPercentage%"></div></div><div class="d-flex align-items-center justify-content-between"><span class="badge @(enrollment.Status == SharedLayer.Enums.EnrollmentStatus.Completed ? "bg-success" : "bg-secondary")" style="font-size:0.75rem;">@enrollment.Status</span>@if (enrollment.Status == SharedLayer.Enums.EnrollmentStatus.Completed) { <form method="post" action="/Certificates/Generate" class="d-inline ms-2">@Html.AntiForgeryToken()<input type="hidden" name="enrollmentId" value="@enrollment.Id" /><button type="submit" class="btn-outline-custom" style="padding:0.35rem 0.75rem;font-size:0.75rem;">Certificate</button></form> }@if (nextLessonByCourse.TryGetValue(enrollment.CourseId, out var nextLessonId)) { <a href="/Lessons/Watch/@nextLessonId" class="btn-primary-custom" style="padding:0.4rem 1rem;font-size:0.82rem;">@(enrollment.Status == SharedLayer.Enums.EnrollmentStatus.Completed ? "Review" : "Continue")</a> } else { <a href="/Courses/Details/@enrollment.CourseId" class="btn-primary-custom" style="padding:0.4rem 1rem;font-size:0.82rem;">Details</a> }</div></div></div></div>
+            }
+        </div>
+    }
+    else
+    {
+        <div class="dashboard-card text-center py-5"><i class="bi bi-collection-play" style="font-size:4rem;color:#d8b4fe;"></i><h2 style="font-size:1.35rem;font-weight:800;margin-top:1.2rem;">No courses here yet</h2><p class="text-muted mb-4">Enroll in a course to start building your learning library.</p><a href="/Courses" class="btn-primary-custom">Browse Courses</a></div>
+    }
+</div>
+
+
