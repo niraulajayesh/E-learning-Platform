@@ -1,4 +1,5 @@
-using BusinessLayer.Interfaces;
+﻿using BusinessLayer.Interfaces;
+using DataLayer.Context;
 using DataLayer.Entities;
 using DataLayer.UnitOfWork;
 using Microsoft.EntityFrameworkCore;
@@ -9,8 +10,13 @@ namespace BusinessLayer.Services;
 public class LessonService : ILessonService
 {
     private readonly IUnitOfWork _uow;
+    private readonly AppDbContext _db;
 
-    public LessonService(IUnitOfWork uow) => _uow = uow;
+    public LessonService(IUnitOfWork uow, AppDbContext db)
+    {
+        _uow = uow;
+        _db = db;
+    }
 
     public async Task<Result<Lesson>> GetLessonByIdAsync(Guid id, CancellationToken ct = default)
     {
@@ -102,3 +108,4 @@ public class LessonService : ILessonService
         return Result.Success();
     }
 }
+

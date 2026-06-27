@@ -1,4 +1,4 @@
-@model AdminLayer.Models.QuestionBankIndexViewModel
+﻿@model AdminLayer.Models.QuestionBankIndexViewModel
 @{
     var topics = ViewBag.Topics as List<string> ?? new();
 }
@@ -62,7 +62,7 @@
                             @if (q.Status == "Published") { <form asp-action="Unpublish" asp-route-id="@q.Id" method="post">@Html.AntiForgeryToken()<button type="submit" class="btn btn-outline-warning"><i class="bi bi-cloud-slash"></i></button></form> }
                             @if (q.Status == "Archived") { <form asp-action="Restore" asp-route-id="@q.Id" method="post">@Html.AntiForgeryToken()<button type="submit" class="btn btn-outline-info"><i class="bi bi-arrow-counterclockwise"></i></button></form> }
                             @if (q.Status != "Archived") { <form asp-action="Archive" asp-route-id="@q.Id" method="post">@Html.AntiForgeryToken()<button type="submit" class="btn btn-outline-secondary"><i class="bi bi-archive"></i></button></form> }
-                            <form asp-action="Delete" asp-route-id="@q.Id" method="post" data-confirm="Delete this question if it is unused, or archive it if it is in use?">@Html.AntiForgeryToken()<button type="submit" class="btn btn-outline-danger"><i class="bi bi-trash"></i></button></form>
+                            <form asp-action="Delete" asp-route-id="@q.Id" method="post" data-confirm="Delete this question if it is unused?">@Html.AntiForgeryToken()<button type="submit" class="btn btn-outline-danger"><i class="bi bi-trash"></i></button></form><form asp-action="Delete" asp-route-id="@q.Id" method="post" data-confirm="Remove question bank references from quizzes/tests, then delete this question?">@Html.AntiForgeryToken()<input type="hidden" name="removeReferences" value="true" /><button type="submit" class="btn btn-outline-danger" title="Remove references and delete"><i class="bi bi-trash-fill"></i></button></form>
                         </div>
                     </td>
                 </tr>
@@ -71,4 +71,5 @@
         </table>
     </div>
 </div>
+
 

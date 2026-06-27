@@ -1,4 +1,4 @@
-@model IEnumerable<DataLayer.Entities.Category>
+﻿@model IEnumerable<DataLayer.Entities.Category>
 @{
     ViewData["Title"] = "Categories";
     var search = ViewBag.Search as string;
@@ -37,14 +37,7 @@
                         <td><span class="badge @(category.IsActive ? "bg-success" : "bg-secondary")">@(category.IsActive ? "Active" : "Inactive")</span></td>
                         <td>@activeCourses active</td>
                         <td class="text-end">
-                            <a href="/Categories/Details/@category.Id" class="btn btn-sm btn-outline-secondary"><i class="bi bi-eye"></i></a>
-                            <a href="/Categories/Edit/@category.Id" class="btn btn-sm btn-outline-primary"><i class="bi bi-pencil"></i></a>
-                            <form action="/Categories/Delete" method="post" class="d-inline" data-confirm="@(activeCourses > 0 ? "This category has active courses. Confirming will deactivate the category instead of removing course history." : "Delete this category?")">
-                                @Html.AntiForgeryToken()
-                                <input type="hidden" name="id" value="@category.Id" />
-                                <input type="hidden" name="confirmWithCourses" value="@(activeCourses > 0 ? "true" : "false")" />
-                                <button type="submit" class="btn btn-sm btn-outline-danger"><i class="bi bi-trash"></i></button>
-                            </form>
+                            <div class="dropdown"><button class="btn btn-sm btn-outline-secondary dropdown-toggle" data-bs-toggle="dropdown">Actions</button><ul class="dropdown-menu dropdown-menu-end"><li><a class="dropdown-item" href="/Categories/Details/@category.Id"><i class="bi bi-eye me-2"></i>View</a></li><li><a class="dropdown-item" href="/Categories/Edit/@category.Id"><i class="bi bi-pencil me-2"></i>Edit</a></li><li><hr class="dropdown-divider" /></li><li><form action="/Categories/Delete" method="post" data-confirm="Delete this category? This action cannot be undone.">@Html.AntiForgeryToken()<input type="hidden" name="id" value="@category.Id" /><button type="submit" class="dropdown-item text-danger"><i class="bi bi-trash me-2"></i>Delete</button></form></li></ul></div>
                         </td>
                     </tr>
                 }
@@ -62,4 +55,5 @@
         }
     </ul></nav>
 }
+
 

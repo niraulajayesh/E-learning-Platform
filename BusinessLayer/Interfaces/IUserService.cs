@@ -1,4 +1,4 @@
-using DataLayer.Entities;
+﻿using DataLayer.Entities;
 using SharedLayer.Wrappers;
 
 namespace BusinessLayer.Interfaces;
@@ -15,4 +15,7 @@ public interface IUserService
     Task<Result> SetActiveStatusAsync(Guid id, bool isActive, CancellationToken ct = default);
     Task<Result> SetRoleAsync(Guid id, SharedLayer.Enums.UserRole role, CancellationToken ct = default);
     Task<Result> ResetPasswordAsync(Guid id, string passwordHash, CancellationToken ct = default);
+    Task<Result> DeleteUserAsync(Guid id, string? currentUserEmail = null, CancellationToken ct = default);
 }
+
+

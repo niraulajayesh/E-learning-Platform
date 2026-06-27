@@ -1,4 +1,4 @@
-using DataLayer.Context;
+﻿using DataLayer.Context;
 using DataLayer.Entities;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -95,7 +95,17 @@ public class FlashcardsController : Controller
         }
         return RedirectToAction(nameof(Index));
     }
-
+    [HttpPost]
+    [ValidateAntiForgeryToken]
+    public async Task<IActionResult> DeleteCard(Guid id, Guid setId)
+    {
+        var card = await _db.Flashcards.FirstOrDefaultAsync(c => c.Id == id && c.FlashcardSetId == setId);
+        if (card == null) return NotFound();
+        _db.Flashcards.Remove(card);
+        await _db.SaveChangesAsync();
+        TempData["Success"] = "Flashcard deleted.";
+        return RedirectToAction(nameof(Edit), new { id = setId });
+    }
     private async Task LoadCategories() => ViewBag.Categories = await _db.Categories.OrderBy(c => c.DisplayOrder).ToListAsync();
 
     private bool ValidateSet(FlashcardSet model)
@@ -113,4 +123,5 @@ public class FlashcardsController : Controller
 
     private static List<Flashcard> DefaultCards() => Enumerable.Range(1, 5).Select(i => new Flashcard { Order = i }).ToList();
 }
+
 

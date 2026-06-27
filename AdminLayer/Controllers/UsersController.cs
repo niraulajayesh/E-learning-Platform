@@ -14,16 +14,14 @@ public class UsersController : Controller
 
     public UsersController(IUserService userService) => _userService = userService;
 
-    public async Task<IActionResult> Index(string? search, UserRole? role, bool? isActive)
+    public async Task<IActionResult> Index(string? search, UserRole? role)
     {
         var result = await _userService.GetAllUsersAsync();
         var users = result.Data ?? new List<PlatformUser>();
         if (!string.IsNullOrWhiteSpace(search)) users = users.Where(u => u.FullName.Contains(search, StringComparison.OrdinalIgnoreCase) || u.Email.Contains(search, StringComparison.OrdinalIgnoreCase));
         if (role.HasValue) users = users.Where(u => u.Role == role.Value);
-        if (isActive.HasValue) users = users.Where(u => u.IsActive == isActive.Value);
         ViewBag.Search = search;
         ViewBag.Role = role;
-        ViewBag.IsActive = isActive;
         return View(users.ToList());
     }
 
@@ -76,15 +74,6 @@ public class UsersController : Controller
 
     [HttpPost]
     [ValidateAntiForgeryToken]
-    public async Task<IActionResult> SetStatus(Guid id, bool isActive)
-    {
-        var result = await _userService.SetActiveStatusAsync(id, isActive);
-        TempData[result.IsSuccess ? "Success" : "Error"] = result.IsSuccess ? (isActive ? "User activated." : "User suspended.") : result.ErrorMessage;
-        return RedirectToAction(nameof(Index));
-    }
-
-    [HttpPost]
-    [ValidateAntiForgeryToken]
     public async Task<IActionResult> PromoteInstructor(Guid id)
     {
         var result = await _userService.SetRoleAsync(id, UserRole.Instructor);
@@ -105,7 +94,15 @@ public class UsersController : Controller
         TempData[result.IsSuccess ? "Success" : "Error"] = result.IsSuccess ? "Password reset." : result.ErrorMessage;
         return RedirectToAction(nameof(Edit), new { id });
     }
-
+    [HttpPost]
+    [ValidateAntiForgeryToken]
+    public async Task<IActionResult> Delete(Guid id)
+    {
+        var currentEmail = User.Identity?.Name ?? User.Claims.FirstOrDefault(c => c.Type.Contains("email", StringComparison.OrdinalIgnoreCase))?.Value;
+        var result = await _userService.DeleteUserAsync(id, currentEmail);
+        TempData[result.IsSuccess ? "Success" : "Error"] = result.IsSuccess ? "User permanently deleted." : result.ErrorMessage;
+        return RedirectToAction(nameof(Index));
+    }
     private void ClearUserModelState()
     {
         ModelState.Remove(nameof(PlatformUser.PasswordHash));
@@ -124,4 +121,5 @@ public class UsersController : Controller
         return Convert.ToHexString(sha.ComputeHash(Encoding.UTF8.GetBytes(password)));
     }
 }
+
 

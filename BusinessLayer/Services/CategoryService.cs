@@ -1,4 +1,4 @@
-using BusinessLayer.Interfaces;
+﻿using BusinessLayer.Interfaces;
 using DataLayer.Entities;
 using DataLayer.UnitOfWork;
 using Microsoft.EntityFrameworkCore;
@@ -72,3 +72,4 @@ public class CategoryService : ICategoryService
         return string.IsNullOrWhiteSpace(slug) ? Guid.NewGuid().ToString("N") : slug;
     }
 }
+

@@ -1,0 +1,6 @@
+﻿@model DataLayer.Entities.Testimonial
+@{
+    ViewData["Title"] = "Preview Testimonial";
+}
+<div class="d-flex justify-content-between align-items-center mb-4"><h2>Preview Testimonial</h2><a asp-action="Index" class="btn btn-outline-secondary">Back</a></div>
+<div class="card shadow-sm border-0" style="max-width:760px"><div class="card-body"><div class="d-flex gap-3 align-items-center mb-3">@if(!string.IsNullOrWhiteSpace(Model.ProfilePictureUrl)){<img src="@Model.ProfilePictureUrl" alt="@Model.StudentName" class="rounded-circle" style="width:64px;height:64px;object-fit:cover" />}<div><h4 class="mb-0">@Model.StudentName</h4><div class="text-muted">@Model.StudentRole</div></div></div><p class="lead">@Model.Content</p><div class="text-warning">@string.Concat(Enumerable.Repeat("★", Model.Rating))</div></div></div>

@@ -1,4 +1,4 @@
-using BusinessLayer.Interfaces;
+﻿using BusinessLayer.Interfaces;
 using DataLayer.Entities;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -103,7 +103,7 @@ public class CategoriesController : Controller
     public async Task<IActionResult> Delete(int id, bool confirmWithCourses = false)
     {
         var result = await _categoryService.DeleteCategoryAsync(id, confirmWithCourses);
-        TempData[result.IsSuccess ? "Success" : "Error"] = result.IsSuccess ? "Category deleted or deactivated." : result.ErrorMessage;
+        TempData[result.IsSuccess ? "Success" : "Error"] = result.IsSuccess ? "Category deleted." : result.ErrorMessage;
         return RedirectToAction(nameof(Index));
     }
 
@@ -121,5 +121,6 @@ public class CategoriesController : Controller
         ModelState.Remove(nameof(Category.Courses));
     }
 }
+
 
 

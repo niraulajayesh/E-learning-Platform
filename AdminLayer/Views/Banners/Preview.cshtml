@@ -1,0 +1,6 @@
+﻿@model DataLayer.Entities.Banner
+@{
+    ViewData["Title"] = "Preview Banner";
+}
+<div class="d-flex justify-content-between align-items-center mb-4"><h2>Preview Banner</h2><a asp-action="Index" class="btn btn-outline-secondary">Back</a></div>
+<div class="card shadow-sm border-0 overflow-hidden"><img src="@Model.ImageUrl" alt="@Model.Title" style="max-height:360px;object-fit:cover" /><div class="card-body"><h3>@Model.Title</h3><p class="text-muted">@Model.Subtitle</p>@if(!string.IsNullOrWhiteSpace(Model.ButtonText)){<a href="@Model.ButtonLink" class="btn btn-primary">@Model.ButtonText</a>}</div></div>
